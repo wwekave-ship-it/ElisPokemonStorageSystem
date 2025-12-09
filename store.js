@@ -71,7 +71,6 @@ const partySubtotalEl = document.getElementById("partySubtotal");
 const DEFAULT_LABEL_GIF = "images/box-label.gif";
 const DEFAULT_SPRITE_GIF = "";
 const DEFAULT_PREVIEW_GIF = "";
-const MUSIC_STORAGE_KEY = "bgMusicUrl";
 const summaryModal = document.getElementById("summaryModal");
 const summaryBackdrop = document.getElementById("summaryBackdrop");
 const summaryCloseBtn = document.getElementById("summaryCloseBtn");
@@ -83,6 +82,8 @@ const summaryCondition = document.getElementById("summaryCondition");
 const summaryPrice = document.getElementById("summaryPrice");
 const summaryCard = document.getElementById("summaryCard");
 let summaryOpen = false;
+let audioCtx = null;
+let userInteracted = false;
 
 function applyFocus(el) {
   if (el && el.focus) el.focus({ preventScroll: true });
@@ -90,11 +91,6 @@ function applyFocus(el) {
 const summaryImageWrap = document.querySelector(".summary-image-wrap");
 let summaryLens = null;
 const SUMMARY_LENS_ZOOM = 1.3;
-const musicToggle = document.getElementById("musicToggle");
-const bgMusic = document.getElementById("bgMusic");
-let audioCtx = null;
-let autoPlayAttempted = false;
-let userInteracted = false;
 const DEFAULT_OVERLAY_GIF = "";
 let overlayEl = null;
 const MAX_LOCAL_VALUE = 200000;
@@ -134,11 +130,6 @@ function markUserInteracted() {
   if (audioCtx && audioCtx.state === "suspended") {
     audioCtx.resume();
   }
-  attemptAutoplay();
-}
-
-if (bgMusic) {
-  bgMusic.crossOrigin = "anonymous";
 }
 
 // --- State ---
@@ -906,7 +897,6 @@ async function loadThemeSettingsFromCloud() {
     if ("spriteGif" in data) setLocalThemeValue("spriteGif", data.spriteGif || "");
     if ("previewGif" in data) setLocalThemeValue("previewGif", data.previewGif || "");
     if ("overlayGif" in data) setLocalThemeValue("overlayGif", data.overlayGif || "");
-    if ("musicUrl" in data) setLocalThemeValue(MUSIC_STORAGE_KEY, data.musicUrl || "");
   } catch (err) {
     console.warn("Theme load failed; using local cache.", err);
   }
@@ -1025,103 +1015,6 @@ function closeBootOverlay() {
   clearBootTimers();
   bootOverlay.classList.add("hidden");
   document.removeEventListener("keydown", bootHandleKeyNav);
-}
-
-function loadMusicUrl() {
-  if (!bgMusic) return;
-  const saved = localStorage.getItem(MUSIC_STORAGE_KEY);
-  if (saved) {
-    bgMusic.src = saved;
-    bgMusic.load();
-    setBoxStatus("Music track loaded. Press Play Music to start.");
-  } else {
-    bgMusic.removeAttribute("src");
-    bgMusic.src = "";
-  }
-}
-
-function updateMusicToggleLabel() {
-  if (!musicToggle || !bgMusic) return;
-  const hasTrack = Boolean(bgMusic.src);
-  const playing = hasTrack && !bgMusic.paused;
-  musicToggle.textContent = hasTrack
-    ? playing
-      ? "Pause Music"
-      : "Play Music"
-    : "No Music";
-  musicToggle.disabled = !hasTrack;
-}
-
-function toggleMusic() {
-  if (!bgMusic || !bgMusic.src) {
-    alert("No music track set. Add one in the admin page first.");
-    return;
-  }
-  if (bgMusic.paused) {
-    bgMusic.load();
-    bgMusic
-      .play()
-      .then(updateMusicToggleLabel)
-      .catch((err) => {
-        console.warn("Music play blocked:", err);
-        alert("Unable to start music. Try interacting with the page first.");
-      });
-  } else {
-    bgMusic.pause();
-    updateMusicToggleLabel();
-  }
-}
-
-function handleMusicError() {
-  setBoxStatus("Music could not be loaded. Check the URL or CORS settings.");
-  updateMusicToggleLabel();
-}
-
-function attemptAutoplay() {
-  if (!bgMusic || !bgMusic.src || autoPlayAttempted) return;
-  if (!userInteracted) {
-    wireAutoplayGestureRetry();
-    return;
-  }
-  autoPlayAttempted = true;
-  bgMusic.load();
-  bgMusic
-    .play()
-    .then(() => {
-      updateMusicToggleLabel();
-      setBoxStatus("Music is playing.");
-    })
-    .catch((err) => {
-      console.warn("Autoplay blocked:", err);
-      setBoxStatus("Music loaded; press Play to start (browser blocked autoplay).");
-      wireAutoplayGestureRetry();
-    });
-}
-
-function wireAutoplayGestureRetry() {
-  const handler = () => {
-    userInteracted = true;
-    if (audioCtx && audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-    if (!bgMusic || !bgMusic.src) return cleanup();
-    bgMusic
-      .play()
-      .then(() => {
-        updateMusicToggleLabel();
-        setBoxStatus("Music is playing.");
-        cleanup();
-      })
-      .catch(() => {
-        // keep waiting for another gesture
-      });
-  };
-  const cleanup = () => {
-    document.removeEventListener("pointerdown", handler);
-    document.removeEventListener("keydown", handler);
-  };
-  document.addEventListener("pointerdown", handler, { once: true });
-  document.addEventListener("keydown", handler, { once: true });
 }
 
 
@@ -1509,8 +1402,6 @@ async function init() {
   applySpriteGif();
   applyPreviewGif();
   applyOverlayGif();
-  loadMusicUrl();
-  attemptAutoplay();
   closePartyShelf();
 
   if (prevBoxBtn) prevBoxBtn.addEventListener("click", gotoPrevBox);
@@ -1521,18 +1412,6 @@ async function init() {
       renderCurrentBox();
       clearPreview();
     });
-  }
-
-  if (musicToggle) {
-    musicToggle.addEventListener("click", toggleMusic);
-    updateMusicToggleLabel();
-  }
-
-  if (bgMusic) {
-    bgMusic.addEventListener("play", updateMusicToggleLabel);
-    bgMusic.addEventListener("pause", updateMusicToggleLabel);
-    bgMusic.addEventListener("ended", updateMusicToggleLabel);
-    bgMusic.addEventListener("error", handleMusicError);
   }
 
   if (partyCheckoutBtn) {

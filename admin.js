@@ -114,10 +114,6 @@ const spriteGifFileInput = document.getElementById("spriteGifFile");
 const previewGifUrlInput = document.getElementById("previewGifUrl");
 const previewGifApplyBtn = document.getElementById("applyPreviewGif");
 const previewGifFileInput = document.getElementById("previewGifFile");
-const musicUrlInput = document.getElementById("musicUrl");
-const musicApplyBtn = document.getElementById("applyMusic");
-const musicClearBtn = document.getElementById("clearMusic");
-const musicFileInput = document.getElementById("musicFile");
 const availIsekaiStartInput = document.getElementById("availIsekaiStart");
 const availIsekaiEndInput = document.getElementById("availIsekaiEnd");
 const availIsekaiStartTimeInput = document.getElementById("availIsekaiStartTime");
@@ -133,7 +129,6 @@ const dayCheckboxGroups = document.querySelectorAll(".day-checkbox-group");
 const aspenDayRows = document.querySelectorAll(".aspen-day-row");
 const tradeRequestsList = document.getElementById("tradeRequestsList");
 let tradeRequestsCache = [];
-const DEFAULT_MUSIC_URL = "";
 const paymentIconVenmoFileInput = document.getElementById("paymentIconVenmoFile");
 const paymentIconPaypalFileInput = document.getElementById("paymentIconPaypalFile");
 const paymentIconTradeFileInput = document.getElementById("paymentIconTradeFile");
@@ -197,7 +192,6 @@ async function startAdminApp() {
     loadPreviewGif();
     loadOverlayGif();
     loadOverlayGif2();
-    loadMusicUrl();
     await loadAllCards();
     await loadTradeRequests();
     renderCards();
@@ -552,23 +546,6 @@ async function deleteTradeRequest(id) {
   }
 }
 
-function applyMusicUrl(url, persist = true) {
-  const finalUrl = url || DEFAULT_MUSIC_URL;
-  if (persist) {
-    if (url) {
-      localStorage.setItem("bgMusicUrl", finalUrl);
-    } else {
-      localStorage.removeItem("bgMusicUrl");
-    }
-  }
-  if (musicUrlInput) musicUrlInput.value = url || "";
-}
-
-function loadMusicUrl() {
-  const saved = localStorage.getItem("bgMusicUrl");
-  applyMusicUrl(saved || DEFAULT_MUSIC_URL, false);
-}
-
 function applyPaymentIcon(id, url, persist = true) {
   const finalUrl = url || DEFAULT_PAYMENT_ICONS[id] || "";
   if (persist) {
@@ -630,7 +607,6 @@ async function loadThemeSettingsFromCloud() {
     if ("spriteGif" in data) applySpriteGif(data.spriteGif || "", false);
     if ("previewGif" in data) applyPreviewGif(data.previewGif || "", false);
     if ("overlayGif" in data) applyOverlayGif(data.overlayGif || "", false);
-    if ("musicUrl" in data) applyMusicUrl(data.musicUrl || "", false);
     if (data.pickupAvailability) {
       const fallback = data.pickupAvailability;
       // tolerate old timeWindow values by mapping to startTime/endTime when missing
@@ -1099,39 +1075,6 @@ if (previewGifApplyBtn) {
     } else {
       setStatus("Applied locally; not saved to cloud (too large or data URL).");
     }
-  });
-}
-
-// Music controls
-if (musicApplyBtn) {
-  musicApplyBtn.addEventListener("click", () => {
-    const url = musicUrlInput?.value?.trim();
-    applyMusicUrl(url || DEFAULT_MUSIC_URL);
-    if (canSaveToCloud(url)) {
-      saveThemeSettings({ musicUrl: url || "" });
-      setStatus(url ? "Applied music URL." : "Cleared music; no track set.");
-    } else {
-      setStatus("Applied locally; not saved to cloud (too large or data URL).");
-    }
-  });
-}
-
-if (musicFileInput) {
-  musicFileInput.addEventListener("change", (ev) => {
-    const file = ev.target.files?.[0];
-    if (!file) return;
-    uploadThemeAsset(file, "musicUrl", applyMusicUrl, "Music").finally(() => {
-      musicFileInput.value = "";
-    });
-  });
-}
-
-if (musicClearBtn) {
-  musicClearBtn.addEventListener("click", () => {
-    applyMusicUrl("");
-    if (musicUrlInput) musicUrlInput.value = "";
-    saveThemeSettings({ musicUrl: "" });
-    setStatus("Cleared music; no track set.");
   });
 }
 

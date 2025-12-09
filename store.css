@@ -53,11 +53,6 @@ body {
   filter: brightness(0.9) saturate(1.02);
 }
 
-.page-gif-overlay.overlay-active ~ .music-controls ~ .card-popup,
-.page-gif-overlay.overlay-active ~ .music-controls ~ .party-popup {
-  filter: brightness(0.94);
-}
-
 @keyframes fogMove {
   from {
     transform: translateX(-18px) translateY(-10px);
@@ -1327,36 +1322,6 @@ button:active {
 
 .hidden {
   display: none !important;
-}
-
-/* Music toggle */
-.music-controls {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 0.45rem;
-  z-index: 70;
-}
-
-.music-btn {
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(135deg, #0fd3ff 0%, #3c73ff 100%);
-  color: #001427;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.65);
-  min-width: 120px;
-  text-align: center;
-}
-
-.music-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* Final force-off for mouse focus rings anywhere on store */
