@@ -12,7 +12,9 @@ import {
 
 const CART_KEY = "pokemonCart";
 const PARTY_KEY = "pokemonParty";
-const FALLBACK_SPRITE = "sprites/000.png";
+// Inline 1x1 transparent PNG to avoid 404s when no sprite is available
+const FALLBACK_SPRITE =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQYV2P4//8/AwAI/AL+XQvFeQAAAABJRU5ErkJggg==";
 const DEFAULT_PAYMENT_ICONS = {
   venmo: "images/venmo-icon.svg",
   paypal: "images/paypal-icon.svg",
