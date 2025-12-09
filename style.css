@@ -1674,6 +1674,8 @@ button:active {
   font-family: inherit;
   font-size: 0.95rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
+  color-scheme: dark;
 }
 
 .trade-field input:focus,
@@ -1683,6 +1685,11 @@ button:active {
   box-shadow:
     0 0 0 2px rgba(59, 199, 255, 0.35),
     0 0 16px rgba(255, 79, 163, 0.6);
+}
+
+.trade-field select option {
+  background: #0c1628;
+  color: #f5f7ff;
 }
 
 .trade-date-input-hidden {
