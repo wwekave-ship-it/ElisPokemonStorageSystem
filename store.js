@@ -68,7 +68,7 @@ const partyPopupSummaryBtn = document.getElementById("partyPopupSummaryBtn");
 const partyPopupCancelBtn = document.getElementById("partyPopupCancelBtn");
 const closeBoxLink = document.getElementById("closeBoxLink");
 const partySubtotalEl = document.getElementById("partySubtotal");
-const DEFAULT_LABEL_GIF = "images/box-label.gif";
+const DEFAULT_LABEL_GIF = "";
 const DEFAULT_SPRITE_GIF = "";
 const DEFAULT_PREVIEW_GIF = "";
 const summaryModal = document.getElementById("summaryModal");
@@ -806,11 +806,13 @@ function setLocalThemeValue(key, value) {
 
 function applyBoxLabelGif() {
   const saved = localStorage.getItem("boxLabelGif");
-  const url = saved || DEFAULT_LABEL_GIF;
-  document.documentElement.style.setProperty(
-    "--box-label-gif",
-    `url("${url}")`
-  );
+  const url = (saved || DEFAULT_LABEL_GIF || "").trim();
+  const value = url ? `url("${url}")` : "";
+  if (value) {
+    document.documentElement.style.setProperty("--box-label-gif", value);
+  } else {
+    document.documentElement.style.removeProperty("--box-label-gif");
+  }
 }
 
 function applySpriteGif() {

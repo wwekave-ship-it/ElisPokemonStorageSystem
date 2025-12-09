@@ -105,7 +105,7 @@ const boxLabelGifUrlInput = document.getElementById("boxLabelGifUrl");
 const boxLabelGifApplyBtn = document.getElementById("applyBoxLabelGif");
 const boxLabelGifFileInput = document.getElementById("boxLabelGifFile");
 
-const DEFAULT_LABEL_GIF = "images/box-label.gif";
+const DEFAULT_LABEL_GIF = "";
 const DEFAULT_SPRITE_GIF = "";
 const DEFAULT_PREVIEW_GIF = "";
 const spriteGifUrlInput = document.getElementById("spriteGifUrl");
@@ -203,19 +203,21 @@ async function startAdminApp() {
 }
 
 function applyBoxLabelGif(url, persist = true) {
-  const finalUrl = url || DEFAULT_LABEL_GIF;
-  document.documentElement.style.setProperty(
-    "--box-label-gif",
-    `url("${finalUrl}")`
-  );
+  const finalUrl = (url || DEFAULT_LABEL_GIF || "").trim();
+  const value = finalUrl ? `url("${finalUrl}")` : "";
+  if (value) {
+    document.documentElement.style.setProperty("--box-label-gif", value);
+  } else {
+    document.documentElement.style.removeProperty("--box-label-gif");
+  }
   if (persist) {
-    if (url) {
+    if (finalUrl) {
       localStorage.setItem("boxLabelGif", finalUrl);
     } else {
       localStorage.removeItem("boxLabelGif");
     }
   }
-  if (boxLabelGifUrlInput) boxLabelGifUrlInput.value = url || "";
+  if (boxLabelGifUrlInput) boxLabelGifUrlInput.value = finalUrl;
 }
 
 function loadBoxLabelGif() {

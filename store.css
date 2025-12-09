@@ -793,7 +793,7 @@ button:active {
 
 :root {
   /* swap this to any GIF/asset you like */
-  --box-label-gif: url("images/box-label.gif");
+  --box-label-gif: linear-gradient(135deg, rgba(15, 211, 255, 0.25), rgba(123, 44, 255, 0.18));
 }
 
 .box-label::before {
