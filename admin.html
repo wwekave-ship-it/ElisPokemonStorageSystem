@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eli's Pokémon Storage System – Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-body">
+  <div id="loginOverlay" class="admin-login-overlay">
+    <div class="admin-login-card">
+      <h1>Admin login</h1>
+      <p class="admin-login-hint">Sign in to manage inventory</p>
+      <form id="loginForm" class="admin-login-form">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" autocomplete="username" required />
+
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required />
+
+        <button type="submit" class="primary-btn full-width">Sign in</button>
+        <p id="loginStatus" class="admin-login-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="adminApp" class="admin-app-shell hidden">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-pill">ADMIN INVENTORY</span>
+        <span class="brand-subtitle">Manage Eli's card boxes</span>
+      </div>
+      <nav class="top-nav">
+        <a href="store.html" class="nav-btn">Store View</a>
+        <button id="logoutBtn" type="button" class="nav-btn">Log out</button>
+        <a href="index.html" class="nav-btn nav-btn-accent">Exit</a>
+      </nav>
+    </header>
+
+    <main class="admin-page-main admin-layout">
+
+    <!-- LEFT COLUMN -->
+    <section class="admin-left">
+
+      <!-- PREVIEW PANEL -->
+      <section class="admin-preview">
+        <div class="preview-card">
+
+          <div class="preview-image-wrapper">
+            <img id="cardImage" class="preview-image hidden" src="" alt="Card image" loading="lazy" decoding="async" />
+            <div id="portraitInitial" class="preview-placeholder">?</div>
+          </div>
+
+          <div class="preview-details">
+            <h2 id="selectedName" class="preview-name">No card selected</h2>
+            <p id="selectedSet" class="preview-meta">Set: —</p>
+            <p id="selectedSetNumber" class="preview-meta">Set Number: —</p>
+            <p id="selectedCondition" class="preview-meta">Condition: —</p>
+            <p id="selectedQty" class="preview-meta">Quantity: —</p>
+            <p id="selectedPrice" class="preview-price">Price: —</p>
+          </div>
+
+          <div class="preview-actions">
+            <label for="editPriceInput">Edit price ($)</label>
+            <div class="inline-input">
+              <input id="editPriceInput" type="number" min="0" step="0.01" value="0.00" />
+              <button id="updatePriceBtn" type="button" class="secondary-btn" disabled>Update Price</button>
+            </div>
+            <label for="targetBox">Move to box</label>
+            <select id="targetBox">
+              <option value="0">BOX1 (Shelf)</option>
+              <option value="1">BOX2</option>
+              <option value="2">BOX3</option>
+              <option value="3">BOX4</option>
+              <option value="4">BOX5</option>
+              <option value="5">BOX6</option>
+            </select>
+
+            <button id="moveBoxBtn" type="button" class="secondary-btn">Move Card</button>
+            <button id="deleteCardBtn" type="button" class="danger-btn" disabled>Delete</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADD CARD FORM -->
+      <section class="admin-form-section">
+        <h2>Add Card to Inventory</h2>
+
+        <form id="cardForm" class="admin-form">
+
+          <!-- Card Name -->
+          <div class="form-row">
+            <label for="cardName">Card Name</label>
+            <input id="cardName" type="text" required />
+          </div>
+
+          <!-- Set + Set Number -->
+          <div class="form-row two-cols">
+            <div>
+              <label for="cardSet">Set</label>
+              <input id="cardSet" type="text" placeholder="Base Set, SV, etc." />
+            </div>
+            <div>
+              <label for="cardSetNumber">Set Number</label>
+              <input id="cardSetNumber" type="number" min="1" placeholder="e.g. 123" />
+            </div>
+          </div>
+
+          <!-- Condition + Price side by side -->
+          <div class="form-row two-cols">
+            <div>
+              <label for="cardCondition">Condition</label>
+              <select id="cardCondition">
+                <option value="Near Mint">Near Mint</option>
+                <option value="Near Mint Foil">Near Mint Foil</option>
+                <option value="Lightly Played">Lightly Played</option>
+                <option value="Lightly Played Foil">Lightly Played Foil</option>
+                <option value="Moderately Played">Moderately Played</option>
+                <option value="Moderately Played Foil">Moderately Played Foil</option>
+                <option value="Heavily Played">Heavily Played</option>
+                <option value="Heavily Played Foil">Heavily Played Foil</option>
+                <option value="Damaged">Damaged</option>
+                <option value="Damaged Foil">Damaged Foil</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="cardPrice">Price ($)</label>
+              <input id="cardPrice" type="number" min="0" step="0.01" value="0.00" />
+            </div>
+          </div>
+
+          <!-- Hidden: Quantity always 1 -->
+          <input id="cardQuantity" type="hidden" value="1" />
+
+          <!-- Card Image (large) underneath -->
+          <div class="form-row">
+            <label for="cardImageFile">Card image (large)</label>
+            <input id="cardImageFile" type="file" accept="image/*" />
+          </div>
+
+          <!-- Optional sprite -->
+          <div class="form-row">
+            <label for="cardSpriteFile">Sprite image (optional)</label>
+            <input id="cardSpriteFile" type="file" accept="image/*" />
+          </div>
+
+          <button type="submit" class="primary-btn full-width">Add Card</button>
+        </form>
+      </section>
+
+    </section>
+
+    <!-- MIDDLE COLUMN: GRID -->
+    <section class="admin-main">
+      <section class="admin-grid-section">
+
+        <header class="admin-grid-header">
+          <div class="box-title">
+            <button id="prevBoxBtn" class="chip-btn" type="button">&#9664;</button>
+            <span id="currentBoxLabel" class="box-label">BOX1 (Shelf)</span>
+            <button id="nextBoxBtn" class="chip-btn" type="button">&#9654;</button>
+          </div>
+
+          <div class="box-filters">
+            <input id="searchInput" class="search-input" type="text" placeholder="Search…" />
+
+            <select id="filterSetNumber" class="chip-select">
+              <option value="Any">All Set Numbers</option>
+              <option value="1">001</option>
+              <option value="2">002</option>
+              <option value="3">003</option>
+              <option value="4">004</option>
+              <option value="5">005</option>
+            </select>
+
+            <select id="filterCondition" class="chip-select">
+              <option value="Any">All Conditions</option>
+              <option value="Near Mint">Near Mint</option>
+              <option value="Near Mint Foil">Near Mint Foil</option>
+              <option value="Lightly Played">Lightly Played</option>
+              <option value="Lightly Played Foil">Lightly Played Foil</option>
+              <option value="Moderately Played">Moderately Played</option>
+              <option value="Moderately Played Foil">Moderately Played Foil</option>
+              <option value="Heavily Played">Heavily Played</option>
+              <option value="Heavily Played Foil">Heavily Played Foil</option>
+              <option value="Damaged">Damaged</option>
+              <option value="Damaged Foil">Damaged Foil</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="admin-grid-shell">
+          <div id="cardsContainer" class="admin-grid"></div>
+
+          <p id="noCardsMessage" class="grid-empty hidden">
+            No cards in this box yet. Add your first card on the left!
+          </p>
+        </div>
+
+        <footer class="box-footer">
+          <span id="adminStatus">Ready.</span>
+        </footer>
+
+      </section>
+
+    </section>
+
+    <!-- RIGHT COLUMN: AMBIENCE -->
+    <section class="admin-tools-panel">
+      <div class="admin-theme-panel">
+        <div class="panel-heading">
+          <p class="eyebrow">Ambience tools</p>
+          <h3>Theme & background controls</h3>
+          <p class="panel-hint">Drop in GIFs or audio to personalize the admin view.</p>
+        </div>
+
+        <div class="theme-grid">
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Box label</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="boxLabelGifUrl">GIF / image URL</label>
+              <div class="inline-input">
+                <input id="boxLabelGifUrl" type="text" placeholder="Paste a GIF or image URL…" />
+                <button id="applyBoxLabelGif" type="button" class="secondary-btn">Apply</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="boxLabelGifFile">Upload GIF</label>
+              <input id="boxLabelGifFile" type="file" accept="image/gif,image/apng,image/webp,image/png" />
+            </div>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Sprite background</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="spriteGifUrl">GIF / image URL</label>
+              <div class="inline-input">
+                <input id="spriteGifUrl" type="text" placeholder="Paste a GIF or image URL…" />
+                <button id="applySpriteGif" type="button" class="secondary-btn">Apply</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="spriteGifFile">Upload GIF</label>
+              <input id="spriteGifFile" type="file" accept="image/gif,image/apng,image/webp,image/png" />
+            </div>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Preview placeholder</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="previewGifUrl">GIF / image URL</label>
+              <div class="inline-input">
+                <input id="previewGifUrl" type="text" placeholder="Paste a GIF or image URL…" />
+                <button id="applyPreviewGif" type="button" class="secondary-btn">Apply</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="previewGifFile">Upload GIF</label>
+              <input id="previewGifFile" type="file" accept="image/gif,image/apng,image/webp,image/png" />
+            </div>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Music</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="musicUrl">Music URL</label>
+              <div class="inline-input">
+                <input id="musicUrl" type="text" placeholder="Paste an audio URL…" />
+                <button id="applyMusic" type="button" class="secondary-btn">Apply</button>
+                <button id="clearMusic" type="button" class="secondary-btn">Clear</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="musicFile">Upload Audio</label>
+              <input id="musicFile" type="file" accept="audio/*" />
+            </div>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Overlay (full page)</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="overlayGifUrl">GIF / image URL</label>
+              <div class="inline-input">
+                <input id="overlayGifUrl" type="text" placeholder="Paste a GIF or image URL…" />
+                <button id="applyOverlayGif" type="button" class="secondary-btn">Apply</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="overlayGifFile">Upload GIF</label>
+              <input id="overlayGifFile" type="file" accept="image/gif,image/apng,image/webp,image/png" />
+            </div>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Payment option icons</h4>
+              <span class="pill pill-ghost">Optional</span>
+            </div>
+            <div class="form-row">
+              <label for="paymentIconVenmoFile">Upload Venmo icon</label>
+              <input id="paymentIconVenmoFile" type="file" accept="image/*" />
+            </div>
+            <div class="form-row">
+              <label for="paymentIconPaypalFile">Upload PayPal icon</label>
+              <input id="paymentIconPaypalFile" type="file" accept="image/*" />
+            </div>
+            <div class="form-row">
+              <label for="paymentIconTradeFile">Upload Trade icon / GIF</label>
+              <input id="paymentIconTradeFile" type="file" accept="image/*" />
+            </div>
+            <p class="panel-hint">These appear on checkout for Venmo, PayPal, and Trade options.</p>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Pickup availability</h4>
+              <span class="pill pill-ghost">Isekai / Aspen</span>
+            </div>
+            <div class="form-row two-cols">
+              <div>
+                <label for="availIsekaiStart">Isekai Arcade start date</label>
+                <input id="availIsekaiStart" type="date" />
+              </div>
+              <div>
+                <label for="availIsekaiEnd">Isekai Arcade end date</label>
+                <input id="availIsekaiEnd" type="date" />
+              </div>
+            </div>
+            <div class="form-row">
+              <button id="setIsekaiWeekend" type="button" class="secondary-btn full-width">Set to Mon–Sun</button>
+            </div>
+            <div class="form-row">
+              <label for="availIsekaiTime">Isekai Arcade time window</label>
+              <div class="inline-input">
+                <input id="availIsekaiStartTime" type="time" />
+                <span class="time-sep">to</span>
+                <input id="availIsekaiEndTime" type="time" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>Days not available (Isekai)</label>
+              <div class="day-checkbox-group" data-location="isekai">
+                <label><input type="checkbox" value="mon" /> Mon</label>
+                <label><input type="checkbox" value="tue" /> Tue</label>
+                <label><input type="checkbox" value="wed" /> Wed</label>
+                <label><input type="checkbox" value="thu" /> Thu</label>
+                <label><input type="checkbox" value="fri" /> Fri</label>
+                <label><input type="checkbox" value="sat" /> Sat</label>
+                <label><input type="checkbox" value="sun" /> Sun</label>
+              </div>
+              <p class="panel-hint">Default: closed Monday; open Tue–Sun.</p>
+            </div>
+
+            <div class="form-row two-cols">
+              <div>
+                <label for="availAspenStart">Aspen Lofts start date</label>
+                <input id="availAspenStart" type="date" />
+              </div>
+              <div>
+                <label for="availAspenEnd">Aspen Lofts end date</label>
+                <input id="availAspenEnd" type="date" />
+              </div>
+            </div>
+            <div class="form-row">
+              <button id="setAspenWeekend" type="button" class="secondary-btn full-width">Set to Mon–Sun</button>
+            </div>
+            <div class="form-row">
+              <label for="availAspenTime">Aspen Lofts time window</label>
+              <div class="inline-input">
+                <input id="availAspenStartTime" type="time" />
+                <span class="time-sep">to</span>
+                <input id="availAspenEndTime" type="time" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>Per-day times (Aspen)</label>
+              <div class="day-time-grid">
+                <div class="day-time-row aspen-day-row" data-day="mon">
+                  <span>Mon</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="tue">
+                  <span>Tue</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="wed">
+                  <span>Wed</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="thu">
+                  <span>Thu</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="fri">
+                  <span>Fri</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="sat">
+                  <span>Sat</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+                <div class="day-time-row aspen-day-row" data-day="sun">
+                  <span>Sun</span>
+                  <input type="time" class="day-start" />
+                  <span class="time-sep">to</span>
+                  <input type="time" class="day-end" />
+                </div>
+              </div>
+              <p class="panel-hint">Leave blank to fall back to the general window above.</p>
+            </div>
+
+            <div class="form-row">
+              <label>Days not available (Aspen)</label>
+              <div class="day-checkbox-group" data-location="aspen">
+                <label><input type="checkbox" value="mon" /> Mon</label>
+                <label><input type="checkbox" value="tue" /> Tue</label>
+                <label><input type="checkbox" value="wed" /> Wed</label>
+                <label><input type="checkbox" value="thu" /> Thu</label>
+                <label><input type="checkbox" value="fri" /> Fri</label>
+                <label><input type="checkbox" value="sat" /> Sat</label>
+                <label><input type="checkbox" value="sun" /> Sun</label>
+              </div>
+              <p class="panel-hint">Default: open all week.</p>
+            </div>
+
+            <button id="saveAvailability" type="button" class="primary-btn full-width">Save availability</button>
+          </div>
+
+          <div class="theme-card">
+            <div class="theme-card-header">
+              <h4>Trade requests</h4>
+              <span class="pill pill-ghost">Review</span>
+            </div>
+            <div id="tradeRequestsList" class="trade-requests-list">
+              <p class="panel-hint">No requests loaded yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+    <footer class="page-footer">
+      Eli's Pokémon Storage System • Admin View
+    </footer>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

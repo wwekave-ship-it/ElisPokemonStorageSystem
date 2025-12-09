@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eli's Pokémon Storage System – Checkout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="bootOverlay" class="boot-overlay hidden">
+    <div class="boot-card">
+      <p id="bootTitle" class="boot-title">Communication Standby...</p>
+      <p id="bootSubtitle" class="boot-subtitle">Please wait</p>
+    </div>
+  </div>
+
+  <main class="checkout-trade">
+    <section class="trade-panel trade-panel-left">
+      <div class="trade-banner">Trainer</div>
+      <header class="trade-header"></header>
+
+      <div id="paymentOptions" class="payment-options"></div>
+      <div class="trade-footer-link">
+        <a id="backToStoreLink" class="footer-link" href="store.html">← Back to PC</a>
+      </div>
+    </section>
+
+    <section class="trade-panel trade-panel-right">
+      <div class="trade-banner">Eli</div>
+      <header class="trade-header"></header>
+
+      <div id="cartEmptyMessage" class="trade-empty">
+        Wanna keep trading? Go back to the PC and add some cards!
+      </div>
+
+      <div id="partyGrid" class="party-grid-roster"></div>
+      <div class="party-total-bar center-total stick-bottom">
+        <span id="cartTotal" class="trade-total"></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Popups -->
+  <div id="paymentPopup" class="checkout-popup hidden">
+    <button id="paymentCancelBtn" class="checkout-popup-secondary" type="button">Nevermind</button>
+    <button id="paymentRequestBtn" class="checkout-popup-primary" type="button">Request to Trade</button>
+  </div>
+
+  <div id="partyPopup" class="checkout-popup hidden">
+    <button id="partyCancelBtn" class="checkout-popup-secondary" type="button">Nevermind</button>
+    <button id="partyDepositBtn" class="checkout-popup-primary" type="button">Deposit</button>
+  </div>
+
+  <div id="summaryModal" class="checkout-summary hidden">
+    <div id="summaryBackdrop" class="checkout-summary-backdrop"></div>
+    <div class="checkout-summary-card">
+      <button id="summaryCloseBtn" class="checkout-summary-close" type="button">✕</button>
+      <div class="checkout-summary-image-wrap">
+        <img id="summaryImage" alt="Card summary" />
+      </div>
+      <div class="checkout-summary-details">
+        <h3 id="summaryName">Card</h3>
+        <p id="summaryPrice">$0.00</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade request modal -->
+  <div id="tradeModal" class="trade-modal hidden">
+    <div id="tradeBackdrop" class="trade-backdrop"></div>
+    <div class="trade-card">
+      <header class="trade-card-header">
+        <div class="trade-card-title">Request to Trade</div>
+        <p class="trade-card-subtitle">Share your details so Eli can arrange pickup.</p>
+      </header>
+      <form id="tradeForm" class="trade-form">
+        <label class="trade-field">
+          <span>Your name</span>
+          <input id="tradeName" name="name" type="text" placeholder="Ash K." autocomplete="name" required />
+        </label>
+        <label class="trade-field">
+          <span>Email</span>
+          <input id="tradeEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+        </label>
+        <label class="trade-field">
+          <span>Phone</span>
+          <input id="tradePhone" name="tel" type="tel" placeholder="(555) 123-4567" autocomplete="tel" />
+        </label>
+        <label class="trade-field">
+          <span>Pickup location</span>
+          <select id="tradeLocation" name="location" required>
+            <option value="" disabled selected>Select a location</option>
+            <option value="Isekai Arcade">Isekai Arcade</option>
+            <option value="Aspen Lofts">Aspen Lofts</option>
+          </select>
+        </label>
+        <label class="trade-field">
+          <span>Pickup date</span>
+          <input id="tradeDate" name="date" type="date" required class="trade-date-input-hidden" />
+          <div id="tradeDateDisplay" class="trade-date-display">Select a date</div>
+          <div id="tradeCalendar" class="trade-calendar"></div>
+        </label>
+        <label class="trade-field">
+          <span>Preferred time</span>
+          <select id="tradeTime" name="time" required>
+            <option value="" disabled selected>Select a time</option>
+          </select>
+        </label>
+        <div class="trade-actions">
+          <button id="tradeCancelBtn" class="checkout-popup-secondary" type="button">Nevermind</button>
+          <button id="tradeSubmitBtn" class="checkout-popup-primary" type="submit">Send Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="checkout.js"></script>
+</body>
+</html>

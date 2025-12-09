@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eli's Pokemon Storage System – Store View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Store-only styles -->
+  <link rel="stylesheet" href="store.css" />
+</head>
+<body>
+  <div class="page-gif-overlay" aria-hidden="true"></div>
+
+  <main class="store-layout">
+    <!-- LEFT: Big preview card -->
+    <section class="card-preview">
+      <div class="preview-card">
+        <div class="preview-image-wrapper">
+          <img
+            id="previewImage"
+            class="preview-image hidden"
+            src=""
+            alt="Card preview"
+          />
+          <div id="previewPlaceholder" class="preview-placeholder">?</div>
+        </div>
+
+        <div class="preview-details">
+          <h2 id="previewName" class="preview-name">Select a card</h2>
+
+          <p id="previewSet" class="preview-meta">
+            Set: &mdash;
+          </p>
+
+          <p id="previewSetNumber" class="preview-meta">
+            Set Number: &mdash;
+          </p>
+
+          <p id="previewCondition" class="preview-meta">
+            Condition: &mdash;
+          </p>
+
+          <p id="previewPrice" class="preview-price">
+            Price: &mdash;
+          </p>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Box grid / PC panel -->
+    <section class="box-panel">
+      <header class="box-header">
+        <!-- NEW: PC-style buttons row -->
+        <div class="pc-top-buttons">
+          <button id="partyButton" class="pc-btn" type="button">
+            PARTY POKÉMON
+          </button>
+          <a id="closeBoxLink" href="index.html?entrance=1" class="pc-btn pc-btn-secondary">
+            CLOSE BOX
+          </a>
+        </div>
+
+        <div class="box-nav">
+          <button id="prevBoxBtn" class="chip-btn" type="button">◀</button>
+          <span id="boxLabel" class="box-label" tabindex="-1">BOX1</span>
+          <button id="nextBoxBtn" class="chip-btn" type="button">▶</button>
+        </div>
+
+        <div class="box-search">
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by name or set…"
+            class="search-input"
+          />
+        </div>
+      </header>
+
+      <div id="boxGrid" class="box-grid"></div>
+
+      <footer class="box-footer">
+        <span id="boxStatus"></span>
+      </footer>
+    </section>
+  </main>
+
+  <div class="page-fog" aria-hidden="true"></div>
+  <div class="page-gif-overlay" aria-hidden="true"></div>
+  <div class="page-gif-overlay-2" aria-hidden="true"></div>
+  <div class="page-gif-overlay-3" aria-hidden="true"></div>
+  <div class="page-gif-overlay-4" aria-hidden="true"></div>
+
+  <div class="music-controls">
+    <button id="musicToggle" class="music-btn" type="button">Play Music</button>
+  </div>
+  <audio id="bgMusic" loop preload="auto"></audio>
+
+  <!-- Small popup when you click a sprite -->
+  <div id="cardPopup" class="card-popup hidden">
+    <button
+      id="popupWithdrawBtn"
+      class="card-popup-withdraw"
+      type="button"
+    >
+      Withdraw
+    </button>
+    <button id="popupSummaryBtn" type="button">Summary</button>
+    <button id="popupCancelBtn" type="button">Nevermind</button>
+  </div>
+
+  <!-- Popup when clicking a party slot to deposit back -->
+  <div id="partyPopup" class="card-popup party-popup hidden">
+    <button
+      id="partyPopupDepositBtn"
+      class="card-popup-withdraw"
+      type="button"
+    >
+      Deposit
+    </button>
+    <button id="partyPopupSummaryBtn" type="button">Summary</button>
+    <button id="partyPopupCancelBtn" type="button">Nevermind</button>
+  </div>
+
+  <!-- Large summary modal -->
+  <div id="summaryModal" class="summary-modal hidden">
+    <div id="summaryBackdrop" class="summary-backdrop"></div>
+    <div id="summaryCard" class="summary-card">
+      <button id="summaryCloseBtn" class="summary-close" type="button">✕</button>
+      <div class="summary-image-wrap">
+        <img id="summaryImage" alt="Card summary" />
+      </div>
+      <div class="summary-details">
+        <h3 id="summaryName">Card name</h3>
+        <p id="summarySet" class="summary-meta">Set: —</p>
+        <p id="summaryNumber" class="summary-meta">Set Number: —</p>
+        <p id="summaryCondition" class="summary-meta">Condition: —</p>
+        <p id="summaryPrice" class="summary-meta">Price: —</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Party shelf that slides down from the top -->
+  <div id="partyShelf" class="party-shelf">
+    <div class="party-header">
+      <span class="party-title">PARTY</span>
+      <button
+        id="partyCloseBtn"
+        class="party-close-btn"
+        type="button"
+      >
+        Cancel
+      </button>
+    </div>
+
+    <div id="partySlots" class="party-slots">
+      <div class="party-slot" data-index="0"></div>
+      <div class="party-slot" data-index="1"></div>
+      <div class="party-slot" data-index="2"></div>
+      <div class="party-slot" data-index="3"></div>
+      <div class="party-slot" data-index="4"></div>
+      <div class="party-slot" data-index="5"></div>
+    </div>
+
+    <div class="party-actions">
+      <button id="partyCheckoutBtn" class="party-close-btn party-checkout" type="button">
+        Checkout
+      </button>
+      <span id="partySubtotal" class="party-subtotal"></span>
+    </div>
+
+  </div>
+
+  <div id="bootOverlay" class="boot-overlay hidden">
+    <div class="boot-card">
+      <p id="bootTitle" class="boot-title">Booted up the PC.</p>
+      <div id="bootActions" class="boot-actions hidden">
+        <button id="bootStore" type="button" class="boot-option primary-btn">Eli's PC</button>
+        <button id="bootAdmin" type="button" class="boot-option secondary-btn">Admin PC</button>
+        <button id="bootLogoff" type="button" class="boot-option danger-btn">Log off</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="store.js"></script>
+</body>
+</html>

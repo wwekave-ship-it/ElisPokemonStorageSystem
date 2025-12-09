@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Eli's Pokémon Storage System – Entrance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="entrance-single page-fade">
+  <div class="page-gif-overlay" aria-hidden="true"></div>
+
+  <main class="entrance-single-wrapper">
+    <h1 id="entranceTitle" class="entrance-title">Eli's Pokémon Storage System</h1>
+  </main>
+
+  <div id="bootOverlay" class="boot-overlay hidden">
+    <div class="boot-card">
+      <p id="bootTitle" class="boot-title">Booted up the PC.</p>
+      <div id="bootActions" class="boot-actions hidden">
+        <button id="bootStore" type="button" class="boot-option primary-btn">Eli's PC</button>
+        <button id="bootAdmin" type="button" class="boot-option secondary-btn">Admin PC</button>
+        <button id="bootLogoff" type="button" class="boot-option danger-btn">Log off</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const overlayEl = document.querySelector(".page-gif-overlay");
+      const savedOverlay = localStorage.getItem("overlayGif");
+      if (savedOverlay) {
+        document.documentElement.style.setProperty(
+          "--overlay-gif",
+          `url("${savedOverlay}")`
+        );
+        overlayEl?.classList.add("overlay-active");
+      }
+
+      const overlay = document.getElementById("bootOverlay");
+      const title = document.getElementById("bootTitle");
+      const actions = document.getElementById("bootActions");
+      const storeBtn = document.getElementById("bootStore");
+      const adminBtn = document.getElementById("bootAdmin");
+      const logoffBtn = document.getElementById("bootLogoff");
+      const entranceTitle = document.getElementById("entranceTitle");
+      if (!overlay || !title) return;
+      const bodyEl = document.body;
+
+      const steps = [
+        { text: "Booted up the PC...", duration: 1600 },
+        { text: "Which PC should be accessed?...", duration: 1600 },
+        { text: "Select a PC to continue...", duration: 0, showActions: true },
+      ];
+
+      const PREFETCH_CARDS_KEY = "prefetchedCardsV1";
+      let idx = 0;
+      let optionIndex = 0;
+      let stepTimeout = null;
+      let typingInterval = null;
+      const optionButtons = [storeBtn, adminBtn, logoffBtn].filter(Boolean);
+
+      function cleanupKeys() {
+        document.removeEventListener("keydown", handleKeyNav);
+      }
+
+      function activateOption(index) {
+        const btn = optionButtons[index];
+        if (btn) btn.click();
+      }
+
+      function updateSelection(nextIndex) {
+        if (!optionButtons.length) return;
+        optionIndex = (nextIndex + optionButtons.length) % optionButtons.length;
+        optionButtons.forEach((btn, i) => {
+          btn.classList.toggle("selected", i === optionIndex);
+          if (i === optionIndex) btn.focus({ preventScroll: true });
+        });
+      }
+
+      function handleKeyNav(ev) {
+        if (overlay.classList.contains("hidden")) {
+          cleanupKeys();
+          return;
+        }
+        if (!optionButtons.length) return;
+        if (["ArrowUp", "ArrowLeft"].includes(ev.key)) {
+          ev.preventDefault();
+          updateSelection(optionIndex - 1);
+        } else if (["ArrowDown", "ArrowRight"].includes(ev.key)) {
+          ev.preventDefault();
+          updateSelection(optionIndex + 1);
+        } else if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          activateOption(optionIndex);
+        }
+      }
+
+      function typeText(text, onComplete) {
+        if (!title) return;
+        title.textContent = "";
+        let pos = 0;
+        if (typingInterval) {
+          clearInterval(typingInterval);
+          typingInterval = null;
+        }
+        typingInterval = setInterval(() => {
+          if (pos >= text.length) {
+            clearInterval(typingInterval);
+            typingInterval = null;
+            // Add blinking dot if the text ends with "..."
+            if (title.textContent.endsWith("...")) {
+              const span = document.createElement("span");
+              span.textContent = ".";
+              span.className = "blink";
+              title.appendChild(span);
+            }
+            if (onComplete) onComplete();
+            return;
+          }
+          title.textContent += text.charAt(pos);
+          pos += 1;
+        }, 35);
+      }
+
+      function showStep(i) {
+        if (stepTimeout) {
+          clearTimeout(stepTimeout);
+          stepTimeout = null;
+        }
+        const step = steps[i];
+        if (!step) {
+          overlay.classList.add("hidden");
+          return;
+        }
+        typeText(step.text, () => {
+          if (actions) {
+            actions.classList.toggle("hidden", !step.showActions);
+          }
+
+          if (step.showActions) {
+            updateSelection(optionIndex);
+            document.addEventListener("keydown", handleKeyNav);
+            optionButtons.forEach((btn, i) => {
+              btn.addEventListener("mouseenter", () => updateSelection(i));
+            });
+            return;
+          }
+
+          stepTimeout = setTimeout(() => {
+            showStep(i + 1);
+          }, step.duration);
+        });
+      }
+
+      function restartBootSequence() {
+        cleanupKeys();
+        if (stepTimeout) {
+          clearTimeout(stepTimeout);
+          stepTimeout = null;
+        }
+        if (typingInterval) {
+          clearInterval(typingInterval);
+          typingInterval = null;
+        }
+        optionIndex = 0;
+        idx = 0;
+        if (actions) actions.classList.add("hidden");
+        overlay.classList.remove("hidden");
+        showStep(idx);
+      }
+
+      // Background prefetch: assets + cards
+      function prefetchAssets() {
+        ["store.html", "store.js", "store.css"].forEach((href) => {
+          const link = document.createElement("link");
+          link.rel = "prefetch";
+          link.href = href;
+          document.head.appendChild(link);
+        });
+      }
+
+      async function prefetchCards() {
+        try {
+          const [{ initializeApp }, { getFirestore, collection, getDocs }] =
+            await Promise.all([
+              import("https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"),
+              import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"),
+            ]);
+
+          const firebaseConfig = {
+            apiKey: "AIzaSyChVKNH9TSbzpNLemZY7wAJgsuXmALW8OU",
+            authDomain: "eli-s-pokemon-storage-system.firebaseapp.com",
+            projectId: "eli-s-pokemon-storage-system",
+            storageBucket: "eli-s-pokemon-storage-system.firebasestorage.app",
+            messagingSenderId: "496938042929",
+            appId: "1:496938042929:web:5797b306031e372d57eeda",
+          };
+
+          const app = initializeApp(firebaseConfig);
+          const db = getFirestore(app);
+          const snap = await getDocs(collection(db, "cards"));
+          const cards = snap.docs.map((docSnap) => {
+            const data = docSnap.data();
+            const card = { id: docSnap.id, ...data };
+            let idx = 0;
+            if (typeof card.boxIndex === "number" && card.boxIndex >= 0) {
+              idx = card.boxIndex;
+            } else if (card.boxName) {
+              const match = String(card.boxName).match(/BOX(\d+)/i);
+              if (match) {
+                const parsedIndex = Number(match[1]) - 1;
+                if (!Number.isNaN(parsedIndex) && parsedIndex >= 0) {
+                  idx = parsedIndex;
+                }
+              }
+            }
+            card.boxIndex = idx;
+            return card;
+          });
+          localStorage.setItem(
+            PREFETCH_CARDS_KEY,
+            JSON.stringify({ at: Date.now(), cards })
+          );
+        } catch (err) {
+          console.warn("Prefetch cards failed:", err);
+        }
+      }
+
+      function goStoreWithPrompt() {
+        if (!overlay || !title) {
+          navigateWithFade("store.html");
+          return;
+        }
+        if (actions) actions.classList.add("hidden");
+        title.textContent = "";
+        typeText("Accessed Eli's PC...", () => {
+          setTimeout(() => {
+            title.textContent = "";
+            typeText("Pokémon Storage System opened...", () => {
+              setTimeout(() => {
+                navigateWithFade("store.html");
+              }, 600);
+            });
+          }, 900);
+        });
+        cleanupKeys();
+      }
+
+      prefetchAssets();
+      prefetchCards();
+
+      if (storeBtn) storeBtn.addEventListener("click", goStoreWithPrompt);
+      if (adminBtn) adminBtn.addEventListener("click", () => navigateWithFade("admin.html"));
+      if (logoffBtn) {
+        logoffBtn.addEventListener("click", () => {
+          cleanupKeys();
+          overlay.classList.add("hidden");
+        });
+      }
+      if (entranceTitle) {
+        entranceTitle.addEventListener("click", restartBootSequence);
+      }
+
+      function navigateWithFade(url) {
+        if (!url) return;
+        if (bodyEl) {
+          bodyEl.classList.add("page-exit");
+          setTimeout(() => {
+            window.location.href = url;
+          }, 280);
+        } else {
+          window.location.href = url;
+        }
+      }
+
+      // Fade in on load
+      if (bodyEl) {
+        requestAnimationFrame(() => bodyEl.classList.add("page-loaded"));
+      }
+    })();
+  </script>
+</body>
+</html>
