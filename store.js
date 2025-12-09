@@ -165,8 +165,9 @@ function updateBoxHeader() {
 }
 
 // Sprite helpers (prefer provided URLs, then local sprite sheet, then fallback)
-// 000.png exists in /sprites and works as a generic placeholder
-const FALLBACK_SPRITE = "sprites/000.png";
+// Inline 1x1 transparent PNG to avoid 404s when a sprite is missing on host
+const FALLBACK_SPRITE =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQYV2P4//8/AwAI/AL+XQvFeQAAAABJRU5ErkJggg==";
 
 function normalizeNameToSprite(name) {
   return `sprites/${String(name || "")
