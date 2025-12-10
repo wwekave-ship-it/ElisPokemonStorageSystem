@@ -1363,6 +1363,8 @@ button:active {
     order: 1;
     max-width: 100%;
     overflow: hidden;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
   }
 
   /* Soften neon outlines on payment cards */
