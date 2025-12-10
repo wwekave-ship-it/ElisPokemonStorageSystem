@@ -781,6 +781,7 @@ button:active {
     padding: 0.5rem;
     gap: 0.5rem;
     max-width: 100%;
+    min-height: 100vh;
   }
 
   .card-preview {
@@ -799,6 +800,7 @@ button:active {
   .box-panel {
     gap: 0.6rem;
     width: 100%;
+    min-width: 0;
   }
 
   .pc-top-buttons {
@@ -821,12 +823,14 @@ button:active {
   }
 
   .box-grid {
-    min-height: 320px;
+    min-height: 420px;
     padding: 0.65rem;
+    width: 100%;
   }
 
   .box-header {
     gap: 0.5rem;
+    width: 100%;
   }
 
   .search-input {
