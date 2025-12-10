@@ -552,14 +552,9 @@ function renderPaymentOptions(selectedId) {
     detail.className = "payment-option-detail";
     detail.textContent = opt.detail;
 
-    const desc = document.createElement("div");
-    desc.className = "payment-option-desc";
-    desc.textContent = opt.desc;
-
     btn.appendChild(icon);
     btn.appendChild(label);
     btn.appendChild(detail);
-    btn.appendChild(desc);
 
     btn.addEventListener("click", () => {
       setSelectedPayment(idx);
