@@ -1353,6 +1353,15 @@ button:active {
   .trade-banner {
     transform: translateX(-50%) scale(0.9);
   }
+
+  /* Swap order so Eli panel shows above payment on mobile */
+  .trade-panel-left {
+    order: 2;
+  }
+
+  .trade-panel-right {
+    order: 1;
+  }
 }
 
 .trade-panel {
