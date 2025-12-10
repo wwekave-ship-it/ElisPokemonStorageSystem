@@ -1345,6 +1345,9 @@ button:active {
 
   .trade-panel {
     padding: 0.9rem 0.75rem 0.85rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .trade-banner {
@@ -1477,6 +1480,30 @@ button:active {
   color: var(--muted);
   font-size: 0.9rem;
   margin-top: 0.12rem;
+}
+
+@media (max-width: 720px) {
+  .payment-option {
+    grid-template-columns: 56px 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "icon label"
+      "icon desc";
+  }
+
+  .payment-option-icon {
+    width: 56px;
+    height: 56px;
+    padding: 0.25rem;
+  }
+
+  .payment-option-label {
+    font-size: 0.95rem;
+  }
+
+  .payment-option-desc {
+    font-size: 0.86rem;
+  }
 }
 
 .payment-option:nth-child(odd) .payment-option-icon {
