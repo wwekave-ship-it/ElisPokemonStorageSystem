@@ -1333,6 +1333,25 @@ button:active {
   margin: 0 auto;
 }
 
+@media (max-width: 720px) {
+  .checkout-trade {
+    grid-template-columns: 1fr;
+    padding: 0.6rem 0.5rem 1rem;
+    width: 100vw;
+    max-width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .trade-panel {
+    padding: 0.9rem 0.75rem 0.85rem;
+  }
+
+  .trade-banner {
+    transform: translateX(-50%) scale(0.9);
+  }
+}
+
 .trade-panel {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -1343,6 +1362,7 @@ button:active {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .trade-panel-left {
