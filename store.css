@@ -691,6 +691,13 @@ button:active {
   display: none;
 }
 
+@media (max-width: 700px) {
+  .summary-lens {
+    display: none !important;
+    visibility: hidden;
+  }
+}
+
 .summary-details {
   display: grid;
   gap: 0.2rem;

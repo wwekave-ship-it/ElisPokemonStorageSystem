@@ -438,6 +438,12 @@ function openSummaryModal(cardId) {
   summaryImage.src = imageUrl || "";
   attachImgFallback(summaryImage);
 
+  // Disable the magnify lens on mobile to avoid pinch/zoom issues
+  if (window.matchMedia && window.matchMedia("(max-width: 700px)").matches) {
+    const lens = document.querySelector(".summary-lens");
+    if (lens) lens.classList.add("hidden");
+  }
+
   if (summaryName) summaryName.textContent = card.name || "Unknown";
   if (summarySet) summarySet.textContent = `Set: ${card.set || "Unknown"}`;
   if (summaryNumber)
