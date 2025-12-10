@@ -1348,7 +1348,6 @@ button:active {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
   }
 
   .trade-banner {
@@ -1362,24 +1361,6 @@ button:active {
 
   .trade-panel-right {
     order: 1;
-  }
-
-  .payment-options {
-    gap: 0.35rem;
-  }
-
-  .payment-option {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  }
-
-  .payment-option.selected {
-    transform: none;
-  }
-
-  .payment-option .payment-detail,
-  .payment-option .payment-option-detail {
-    font-size: 0.85rem;
   }
 }
 
@@ -1527,10 +1508,17 @@ button:active {
 
   .payment-option-label {
     font-size: 0.95rem;
+    letter-spacing: 0.02em;
   }
 
   .payment-option-desc {
     font-size: 0.86rem;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+
+  .payment-option-detail {
+    letter-spacing: 0.02em;
   }
 }
 
