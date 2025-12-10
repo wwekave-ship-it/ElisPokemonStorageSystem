@@ -1235,9 +1235,15 @@ function openCardPopup(cardId, slotEl) {
   const rect = slotEl.getBoundingClientRect();
   const popupWidth = cardPopup.offsetWidth || 140;
   const popupHeight = cardPopup.offsetHeight || 60;
-  const left =
-    rect.left + window.scrollX + rect.width / 2 - popupWidth / 2;
-  const top = rect.top + window.scrollY - popupHeight + 18; // lower above sprite
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  let left = rect.left + window.scrollX + rect.width / 2 - popupWidth / 2;
+  let top = rect.top + window.scrollY - popupHeight + 18; // lower above sprite
+
+  // Clamp to viewport to keep popup inside on mobile
+  left = Math.max(8 + window.scrollX, Math.min(left, viewportWidth + window.scrollX - popupWidth - 8));
+  top = Math.max(8 + window.scrollY, Math.min(top, viewportHeight + window.scrollY - popupHeight - 8));
+
   cardPopup.style.left = `${left}px`;
   cardPopup.style.top = `${top}px`;
   cardPopup.classList.remove("hidden");

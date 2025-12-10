@@ -805,12 +805,15 @@ button:active {
     min-height: 100vh;
     width: 100vw;
     grid-template-columns: 1fr;
+    overflow-x: hidden;
+    padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 110px);
   }
 
   .card-preview {
     max-width: none;
     width: 100%;
     margin: 0 auto;
+    padding: 0;
   }
 
   .preview-card {
@@ -821,13 +824,17 @@ button:active {
   }
 
   .preview-image-wrapper {
-    max-height: 55vh;
+    max-height: 48vh;
   }
 
   .box-panel {
     gap: 0.6rem;
     width: 100%;
     min-width: 0;
+    max-width: 100%;
+    padding: 0.75rem 0.6rem 0.85rem;
+    padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 16px));
+    margin: 0 auto;
   }
 
   .pc-top-buttons {
@@ -850,11 +857,12 @@ button:active {
   }
 
   .box-grid {
-    min-height: 320px;
-    max-height: 55vh;
+    min-height: 60vh;
+    max-height: none;
     padding: 0.65rem;
     width: 100%;
     overflow: auto;
+    margin-bottom: 0.6rem;
   }
 
   .box-header {
