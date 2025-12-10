@@ -32,8 +32,8 @@ const PAYMENT_OPTIONS = [
   {
     id: "venmo",
     label: "Venmo",
-    detail: "@elis-storage",
-    desc: "Send to @elis-storage and drop your handle in the notes.",
+    detail: "@dropdeadeliseo",
+    desc: "Send to @dropdeadeliseo and drop your handle in the notes.",
     icon: DEFAULT_PAYMENT_ICONS.venmo,
   },
   {
@@ -54,7 +54,7 @@ const PAYMENT_OPTIONS = [
 const PAYMENT_LINKS = {
   // Opens Venmo with amount and note; falls back to https if the app link is blocked
   venmo: (total) =>
-    `https://account.venmo.com/u/DropDeadEliseo?txn=pay&audience=friends${
+    `https://account.venmo.com/u/dropdeadeliseo?txn=pay&audience=friends${
       Number.isFinite(total) ? `&amount=${total.toFixed(2)}` : ""
     }&note=Eli%20PC%20order`,
   paypal: (total) =>
