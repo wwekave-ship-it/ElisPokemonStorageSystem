@@ -1498,6 +1498,10 @@ button:active {
     grid-template-areas:
       "icon label"
       "icon desc";
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    border-radius: 14px;
   }
 
   .payment-option-icon {
@@ -1519,6 +1523,16 @@ button:active {
 
   .payment-option-detail {
     letter-spacing: 0.02em;
+  }
+
+  .payment-option.selected {
+    transform: none;
+    background: rgba(15, 211, 255, 0.1);
+    box-shadow: none;
+  }
+
+  .payment-options {
+    gap: 0.45rem;
   }
 }
 
