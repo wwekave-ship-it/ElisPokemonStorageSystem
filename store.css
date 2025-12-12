@@ -761,12 +761,12 @@ button:active {
 
 @media (max-width: 580px) {
   .pc-top-buttons {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 0.35rem;
   }
 
   .pc-btn {
-    width: 100%;
+    flex: 1 1 48%;
   }
 }
 
@@ -867,14 +867,16 @@ button:active {
   }
 
   .pc-top-buttons {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.4rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
   }
 
   .pc-btn {
-    width: 100%;
-    padding: 0.6rem 0.75rem;
+    flex: 1 1 48%;
+    min-width: 140px;
+    padding: 0.6rem 0.65rem;
   }
 
   .box-label {
