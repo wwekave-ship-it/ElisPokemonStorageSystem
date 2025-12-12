@@ -605,6 +605,9 @@ button:active {
   flex: 1 1 50%;
   max-width: 50%;
   min-width: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  text-align: center;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: linear-gradient(135deg, #0fd3ff 0%, #3c73ff 100%);
