@@ -602,7 +602,7 @@ button:active {
   justify-content: center;
   padding: 0.25rem 0.75rem;
   min-height: 34px;
-  flex: 0 1 38%;
+  flex: 1 1 0;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: linear-gradient(135deg, #0fd3ff 0%, #3c73ff 100%);
