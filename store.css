@@ -1137,6 +1137,25 @@ button:active {
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 }
 
+/* Portrait phones: give sprites more room so they don't get cropped */
+@media (orientation: portrait) and (max-width: 900px) {
+  .box-grid {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    grid-auto-rows: minmax(115px, 140px);
+    min-height: 65vh;
+  }
+
+  .card-slot {
+    padding: 0.3rem;
+  }
+
+  .card-sprite {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
 /* Box footer */
 
 .box-footer {
