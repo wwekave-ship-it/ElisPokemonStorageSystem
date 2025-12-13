@@ -109,8 +109,8 @@ const bootAdminBtn = document.getElementById("bootAdmin");
 const bootLogoffBtn = document.getElementById("bootLogoff");
 const bootTrigger = document.getElementById("storeBrandTrigger");
 const bootSteps = [
-  { text: "Booted up the PC...", duration: 1200 },
-  { text: "Which PC should be accessed?...", duration: 1200 },
+  { text: "Booted up the PC...", duration: 250 },
+  { text: "Which PC should be accessed?...", duration: 250 },
   { text: "Select a PC to continue...", duration: 0, showActions: true },
 ];
 let bootStepIndex = 0;
@@ -942,7 +942,7 @@ function bootTypeText(text, onComplete) {
     }
     bootTitle.textContent += text.charAt(pos);
     pos += 1;
-  }, 55);
+  }, 10);
 }
 
 function bootUpdateSelection(nextIndex) {

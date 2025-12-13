@@ -591,8 +591,8 @@ button:active {
 .pc-top-buttons {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 0.35rem;
   width: 100%;
 }
 
@@ -602,9 +602,9 @@ button:active {
   justify-content: center;
   padding: 0.25rem 0.75rem;
   min-height: 34px;
-  flex: 1 1 50%;
-  max-width: 50%;
-  min-width: 0;
+  flex: 1 1 45%;
+  max-width: 45%;
+  min-width: 140px;
   font-family: inherit;
   font-size: 0.9rem;
   text-align: center;
@@ -617,6 +617,7 @@ button:active {
   text-transform: uppercase;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
 }
+
 
 .pc-btn.key-focus {
   box-shadow: 0 0 0 2px #0fd3ff, 0 8px 20px rgba(0, 0, 0, 0.65);
@@ -767,13 +768,14 @@ button:active {
 @media (max-width: 580px) {
   .pc-top-buttons {
     flex-wrap: wrap;
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
   .pc-btn {
     flex: 1 1 50%;
     max-width: 50%;
     min-width: 0;
+    padding: 0.55rem 0.6rem;
   }
 }
 
@@ -871,6 +873,8 @@ button:active {
     padding: 0.75rem 0.6rem 0.85rem;
     padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 16px));
     margin: 0 auto;
+    height: calc(100vh - 120px);
+    overflow: auto;
   }
 
   .pc-top-buttons {
@@ -881,10 +885,10 @@ button:active {
   }
 
   .pc-btn {
-    flex: 1 1 50%;
-    max-width: 50%;
+    flex: 1 1 48%;
+    max-width: 48%;
     min-width: 0;
-    padding: 0.6rem 0.65rem;
+    padding: 0.55rem 0.65rem;
   }
 
   .box-label {
@@ -896,11 +900,11 @@ button:active {
   }
 
   .box-grid {
-    min-height: 60vh;
+    min-height: 70vh;
     max-height: none;
     padding: 0.65rem;
     width: 100%;
-    overflow: auto;
+    overflow: visible;
     margin-bottom: 0.6rem;
   }
 
