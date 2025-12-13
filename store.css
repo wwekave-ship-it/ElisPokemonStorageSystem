@@ -667,6 +667,27 @@ button:active {
   overflow: visible; /* allow magnifier to extend past edges */
 }
 
+@media (max-width: 700px) {
+  .summary-card {
+    width: min(520px, 96vw);
+    max-height: 86vh;
+    overflow: auto;
+  }
+
+  .summary-image-wrap {
+    max-height: 60vh;
+  }
+
+  .summary-card h3,
+  .summary-details h3 {
+    font-size: 1.1rem;
+  }
+
+  .summary-details p {
+    font-size: 0.9rem;
+  }
+}
+
 .summary-card.animate {
   animation: summarySpinIn 0.95s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
@@ -732,6 +753,7 @@ button:active {
     visibility: hidden;
   }
 }
+
 
 .summary-details {
   display: grid;
