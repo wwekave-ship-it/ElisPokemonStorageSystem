@@ -374,37 +374,37 @@ button:active {
 /* Landscape phones/tablets: give the PC box full width while keeping the preview */
 @media (orientation: landscape) and (max-width: 1100px) {
   .store-layout {
-    grid-template-columns: minmax(150px, 200px) 1fr;
+    grid-template-columns: minmax(140px, 180px) 1fr;
     width: 100vw;
     max-width: none;
-    padding: 0.3rem 0.4rem;
-    gap: 0.3rem;
-    margin: 0.2rem auto;
+    padding: 0.25rem 0.35rem;
+    gap: 0.25rem;
+    margin: 0.15rem auto;
   }
 
   .card-preview {
     display: block;
-    max-width: 190px;
+    max-width: 170px;
     width: 100%;
     align-self: flex-start;
   }
 
   .preview-image-wrapper {
-    max-height: 35vh;
+    max-height: 32vh;
   }
 
   .box-panel {
     width: 100%;
     max-width: none;
     min-height: auto;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 90px);
     overflow: auto;
   }
 
   .box-grid {
-    min-height: 45vh;
+    min-height: 42vh;
     max-height: none;
-    padding: 0.5rem;
+    padding: 0.45rem;
     grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   }
 }
