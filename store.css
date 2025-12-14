@@ -413,6 +413,8 @@ button:active {
 
   .box-header {
     gap: 0.14rem;
+    transform: scale(0.92);
+    transform-origin: top left;
   }
 
   .box-nav {
@@ -422,7 +424,7 @@ button:active {
   .box-label {
     padding: 0.28rem 0.5rem;
     font-size: 0.76rem;
-    max-width: 32%;
+    max-width: 35%;
     margin: 0 auto;
     transform: scale(0.95);
     transform-origin: center;
