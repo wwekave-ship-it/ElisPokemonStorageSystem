@@ -407,6 +407,22 @@ button:active {
     padding: 0.45rem;
     grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   }
+
+  .box-header {
+    gap: 0.4rem;
+  }
+
+  .pc-top-buttons {
+    gap: 0.2rem;
+  }
+
+  .pc-btn {
+    flex: 1 1 48%;
+    max-width: 48%;
+    min-width: 120px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.85rem;
+  }
 }
 
 
