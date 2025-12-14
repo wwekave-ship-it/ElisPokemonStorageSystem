@@ -412,16 +412,26 @@ button:active {
     gap: 0.3rem;
   }
 
+  .box-nav {
+    gap: 0.3rem;
+  }
+
+  .box-label {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+
   .pc-top-buttons {
-    gap: 0.15rem;
+    gap: 0.12rem;
   }
 
   .pc-btn {
-    flex: 1 1 45%;
-    max-width: 45%;
-    min-width: 100px;
-    padding: 0.15rem 0.5rem;
-    font-size: 0.82rem;
+    flex: 1 1 42%;
+    max-width: 42%;
+    min-width: 90px;
+    padding: 0.14rem 0.45rem;
+    font-size: 0.8rem;
   }
 }
 
