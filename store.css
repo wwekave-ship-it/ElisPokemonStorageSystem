@@ -417,9 +417,10 @@ button:active {
   }
 
   .box-label {
-    padding: 0.65rem 0.9rem;
-    font-size: 0.9rem;
-    max-width: 100%;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.85rem;
+    max-width: 70%;
+    margin: 0 auto;
   }
 
   .pc-top-buttons {
@@ -427,11 +428,11 @@ button:active {
   }
 
   .pc-btn {
-    flex: 1 1 42%;
-    max-width: 42%;
-    min-width: 90px;
-    padding: 0.14rem 0.45rem;
-    font-size: 0.8rem;
+    flex: 1 1 30%;
+    max-width: 30%;
+    min-width: 80px;
+    padding: 0.12rem 0.4rem;
+    font-size: 0.78rem;
   }
 }
 
