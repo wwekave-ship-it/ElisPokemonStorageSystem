@@ -1472,9 +1472,12 @@ button:active {
   );
   border-radius: 10px;
   border: 1px solid rgba(255, 79, 163, 0.55);
-  padding: 0.35rem 0.45rem;
+  padding: 0.3rem 0.4rem;
   display: flex;
   gap: 0.3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 90vw;
   box-shadow:
     0 12px 24px rgba(0, 0, 0, 0.85),
     0 0 22px rgba(59, 199, 255, 0.4),
@@ -1514,8 +1517,8 @@ button:active {
   border: 1px solid rgba(255, 79, 163, 0.5);
   background: rgba(255, 255, 255, 0.12);
   color: #e7e9ff;
-  padding: 0.26rem 0.65rem;
-  font-size: 0.76rem;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
 
