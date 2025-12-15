@@ -1326,7 +1326,7 @@ button:active {
 .checkout-trade {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 0.8rem;
   padding: 0.9rem;
   max-width: 1400px;
@@ -1336,7 +1336,7 @@ button:active {
 @media (max-width: 720px) {
   .checkout-trade {
     grid-template-columns: 1fr;
-    padding: 0.6rem 0.5rem 1rem;
+    padding: 0.45rem 0.4rem 0.9rem;
     width: 100vw;
     max-width: 100%;
     min-height: 100vh;
@@ -1344,7 +1344,7 @@ button:active {
   }
 
   .trade-panel {
-    padding: 0.9rem 0.75rem 0.85rem;
+    padding: 0.75rem 0.7rem 0.8rem;
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -1363,8 +1363,27 @@ button:active {
     order: 1;
     max-width: 100%;
     overflow: hidden;
-    padding-left: 0.4rem;
-    padding-right: 0.4rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .trade-form {
+    gap: 0.5rem;
+  }
+
+  .trade-field {
+    font-size: 0.86rem;
+    gap: 0.3rem;
+  }
+
+  .trade-field span {
+    font-size: 0.85rem;
+  }
+
+  .trade-field input,
+  .trade-field select {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.9rem;
   }
 
   /* Soften neon outlines on payment cards */
@@ -1716,6 +1735,81 @@ button:active {
   padding: 0.9rem 1.1rem 1.05rem;
   display: grid;
   gap: 0.6rem;
+}
+
+@media (max-width: 520px) {
+  .trade-card {
+    width: 90vw;
+    max-height: 90vh;
+    padding: 0.55rem 0.7rem 0.75rem;
+    gap: 0.38rem;
+    overflow-y: auto;
+  }
+
+  .trade-card-title {
+    font-size: 0.98rem;
+  }
+
+  .trade-card-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .trade-form {
+    gap: 0.42rem;
+  }
+
+  .trade-field {
+    font-size: 0.82rem;
+    gap: 0.24rem;
+  }
+
+  .trade-field span {
+    font-size: 0.8rem;
+  }
+
+  .trade-field input,
+  .trade-field select {
+    padding: 0.46rem 0.6rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .trade-card {
+    width: 88vw;
+    max-height: 86vh;
+    padding: 0.5rem 0.6rem 0.65rem;
+    gap: 0.32rem;
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+
+  .trade-card-title {
+    font-size: 0.94rem;
+  }
+
+  .trade-card-subtitle {
+    font-size: 0.74rem;
+  }
+
+  .trade-form {
+    gap: 0.36rem;
+  }
+
+  .trade-field {
+    font-size: 0.78rem;
+    gap: 0.2rem;
+  }
+
+  .trade-field span {
+    font-size: 0.76rem;
+  }
+
+  .trade-field input,
+  .trade-field select {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.82rem;
+  }
 }
 
 .trade-card-header {
