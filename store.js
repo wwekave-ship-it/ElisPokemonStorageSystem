@@ -81,6 +81,7 @@ const summaryNumber = document.getElementById("summaryNumber");
 const summaryCondition = document.getElementById("summaryCondition");
 const summaryPrice = document.getElementById("summaryPrice");
 const summaryCard = document.getElementById("summaryCard");
+const BOX_CAPACITY = 30;
 let summaryOpen = false;
 let audioCtx = null;
 let userInteracted = false;
@@ -285,9 +286,17 @@ function loadPrefetchedCards() {
 
 // --- Load cards from Firestore ---
 async function loadCards() {
+  const rebalance = (cards) => {
+    const sorted = [...cards].sort((a, b) => (a.boxIndex || 0) - (b.boxIndex || 0));
+    return sorted.map((card, idx) => {
+      const boxIndex = Math.floor(idx / BOX_CAPACITY);
+      return { ...card, boxIndex };
+    });
+  };
+
   const cached = loadPrefetchedCards();
   if (cached && !allCards.length) {
-    allCards = cached;
+    allCards = rebalance(cached);
     cardsById = {};
     allCards.forEach((c) => {
       cardsById[c.id] = c;
@@ -325,6 +334,7 @@ async function loadCards() {
 
       return card;
     });
+    allCards = rebalance(allCards);
 
     cardsById = {};
     allCards.forEach((c) => {
