@@ -729,6 +729,11 @@ button:active {
     max-height: 48vh;
   }
 
+  .summary-lens {
+    display: none !important;
+    visibility: hidden;
+  }
+
   .summary-details h3 {
     font-size: 1.2rem;
   }
