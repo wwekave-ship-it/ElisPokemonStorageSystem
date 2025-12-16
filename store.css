@@ -389,6 +389,8 @@ button:active {
     max-width: 200px;
     width: 100%;
     align-self: flex-start;
+    position: sticky;
+    top: 0.25rem;
   }
 
   .preview-image-wrapper {
@@ -415,12 +417,6 @@ button:active {
   .box-header {
     gap: 0.14rem;
     transform: none;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: rgba(0, 0, 0, 0.92);
-    padding-top: 0.2rem;
-    padding-bottom: 0.25rem;
   }
 
   .box-nav {
