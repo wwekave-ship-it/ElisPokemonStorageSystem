@@ -718,6 +718,26 @@ button:active {
   overflow: visible; /* allow magnifier to extend past edges */
 }
 
+@media (orientation: landscape) and (max-width: 1100px) {
+  .summary-card {
+    max-height: 82vh;
+    overflow: auto;
+    transform: scale(0.92) rotate(-6deg);
+  }
+
+  .summary-image-wrap {
+    max-height: 48vh;
+  }
+
+  .summary-details h3 {
+    font-size: 1.2rem;
+  }
+
+  .summary-details .summary-meta {
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 700px) {
   .summary-card {
     width: min(520px, 96vw);
