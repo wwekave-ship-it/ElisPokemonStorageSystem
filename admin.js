@@ -20,6 +20,7 @@ import {
 import {
   getStorage,
   ref,
+  refFromURL,
   uploadBytes,
   getDownloadURL,
   deleteObject,
@@ -636,7 +637,7 @@ async function deleteCardAndAssets(card) {
   await Promise.allSettled(
     assetUrls.map((url) => {
       try {
-        const assetRef = ref(storage, url);
+        const assetRef = refFromURL ? refFromURL(url) : ref(storage, url);
         return deleteObject(assetRef);
       } catch {
         return Promise.resolve();
@@ -1169,7 +1170,7 @@ async function handleDeleteCard() {
 
   try {
     setStatus("Deleting card...");
-    await deleteDoc(doc(db, "cards", selectedCardId));
+    await deleteCardAndAssets(card);
     allCards = allCards.filter((c) => c.id !== selectedCardId);
     selectedCardId = null;
     renderCards();
