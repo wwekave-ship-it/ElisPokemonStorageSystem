@@ -84,6 +84,7 @@ const cardQuantityInput = document.getElementById("cardQuantity"); // hidden, al
 const cardPriceInput = document.getElementById("cardPrice");
 const cardImageFileInput = document.getElementById("cardImageFile");
 const cardSpriteFileInput = document.getElementById("cardSpriteFile");
+const targetBoxSelect = document.getElementById("targetBox");
 
 // Delete button
 const deleteBtn = document.getElementById("deleteCardBtn");
@@ -144,6 +145,9 @@ const DEFAULT_OVERLAY_GIF = "";
 const THEME_DOC_REF = doc(db, "settings", "theme");
 const MAX_LOCAL_VALUE = 200000; // skip localStorage when data URLs are too large
 const MAX_CLOUD_VALUE = 900000; // guard Firestore 1MB field limit
+const BOX_CAPACITY = 30;
+// Admin boxes grow dynamically; start with one box and expand as cards fill.
+let boxCount = 1;
 
 // ---------- State ----------
 let allCards = [];
@@ -161,10 +165,82 @@ function getBoxName(index) {
   return `BOX${index + 1} (Shelf)`;
 }
 
+function getBoxIndexFromName(name) {
+  const match = /BOX(\d+)/i.exec(name || "");
+  const idx = match ? Number(match[1]) - 1 : -1;
+  return Number.isFinite(idx) ? idx : -1;
+}
+
+function setBoxCount(nextCount = 1) {
+  const safeCount = Math.max(1, Math.floor(nextCount));
+  if (safeCount !== boxCount) {
+    boxCount = safeCount;
+    populateTargetBoxOptions();
+  }
+  return boxCount;
+}
+
+function ensureBoxCount(minCount = 1) {
+  const maxIdx = allCards.reduce((max, card) => {
+    const idx = getBoxIndexFromName(card.boxName);
+    return idx > max ? idx : max;
+  }, -1);
+  const needed = Math.max(maxIdx + 1, minCount);
+  return setBoxCount(Math.max(needed, boxCount));
+}
+
+function populateTargetBoxOptions() {
+  if (!targetBoxSelect) return;
+  targetBoxSelect.innerHTML = "";
+  for (let i = 0; i < boxCount; i++) {
+    const option = document.createElement("option");
+    option.value = String(i);
+    option.textContent = getBoxName(i);
+    targetBoxSelect.appendChild(option);
+  }
+}
+
 function updateBoxHeader() {
   if (!currentBoxLabel) return;
   currentBoxLabel.textContent = getBoxName(currentBoxIndex);
 }
+
+function getBoxCounts() {
+  const counts = [];
+  allCards.forEach((card) => {
+    const idx = getBoxIndexFromName(card.boxName);
+    if (idx >= 0) {
+      if (counts[idx] == null) counts[idx] = 0;
+      counts[idx] += 1;
+    }
+  });
+  const length = Math.max(counts.length, boxCount, currentBoxIndex + 1, 1);
+  const normalized = Array(length).fill(0);
+  counts.forEach((val, idx) => {
+    if (val != null) normalized[idx] = val;
+  });
+  setBoxCount(length);
+  return normalized;
+}
+
+function findNextBoxWithSpace(startIndex = 0, counts) {
+  const tally = counts ? [...counts] : getBoxCounts();
+  for (let i = 0; i < tally.length; i++) {
+    if (tally[i] == null) tally[i] = 0;
+  }
+
+  for (let i = startIndex; i < tally.length; i++) {
+    if (tally[i] < BOX_CAPACITY) return i;
+  }
+
+  // All current boxes are full; create a new box index.
+  const newIndex = tally.length;
+  setBoxCount(newIndex + 1);
+  return newIndex;
+}
+
+// Initialize box options with at least one box
+setBoxCount(1);
 
 // ---------- Auth gate ----------
 function toggleAuthUI(isSignedIn) {
@@ -193,6 +269,7 @@ async function startAdminApp() {
     loadOverlayGif();
     loadOverlayGif2();
     await loadAllCards();
+    await enforceBoxCapacity();
     await loadTradeRequests();
     renderCards();
     selectCard(null);
@@ -660,6 +737,7 @@ async function loadAllCards() {
   const snap = await getDocs(collection(db, "cards"));
   allCards = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   console.log("[admin] Loaded cards:", allCards);
+  ensureBoxCount();
   setStatus("Ready.");
 }
 
@@ -698,7 +776,7 @@ function renderCards() {
   clearCardsContainer();
   updateBoxHeader();
 
-  const cards = getCardsForCurrentBox().filter(matchesFilters);
+  const cards = getCardsForCurrentBox().filter(matchesFilters).slice(0, BOX_CAPACITY);
 
   if (!cards.length) {
     cardsContainer.classList.add("empty");
@@ -837,7 +915,15 @@ async function handleAddCard(e) {
     const condition = cardConditionInput.value;
     const quantity = Number(cardQuantityInput.value || "1");
     const price = Number(cardPriceInput.value || "0");
-    const boxName = getBoxName(currentBoxIndex);
+
+    const counts = getBoxCounts();
+    const targetBoxIndex = findNextBoxWithSpace(currentBoxIndex, counts);
+    if (targetBoxIndex == null) {
+      alert("All boxes are full (30 cards each). Delete a card to add more.");
+      setStatus("All boxes are full. Delete a card to add more.");
+      return;
+    }
+    const boxName = getBoxName(targetBoxIndex);
 
     if (!name) {
       alert("Please enter a card name.");
@@ -886,7 +972,11 @@ async function handleAddCard(e) {
       portraitInitial.classList.remove("hidden");
     }
 
-    setStatus("Card added.");
+    setStatus(
+      targetBoxIndex === currentBoxIndex
+        ? "Card added."
+        : `Current box full. Added to ${boxName}.`
+    );
     renderCards();
     selectCard(newCard.id);
   } catch (err) {
@@ -955,8 +1045,43 @@ function gotoPrevBox() {
 
 function gotoNextBox() {
   currentBoxIndex += 1;
+  ensureBoxCount(currentBoxIndex + 1);
   renderCards();
   selectCard(null);
+}
+
+async function enforceBoxCapacity() {
+  if (!allCards.length) return;
+
+  const counts = getBoxCounts();
+  const updates = [];
+  let moved = 0;
+
+  for (let boxIdx = 0; boxIdx < counts.length; boxIdx++) {
+    const cardsInBox = allCards
+      .filter((c) => getBoxIndexFromName(c.boxName) === boxIdx)
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+    if (cardsInBox.length <= BOX_CAPACITY) continue;
+
+    const overflow = cardsInBox.slice(BOX_CAPACITY);
+    overflow.forEach((card) => {
+      const targetIdx = findNextBoxWithSpace(boxIdx + 1, counts);
+      if (targetIdx == null) return;
+      const targetName = getBoxName(targetIdx);
+      if (counts[targetIdx] == null) counts[targetIdx] = 0;
+      counts[targetIdx] += 1;
+      counts[boxIdx] -= 1;
+      card.boxName = targetName;
+      moved += 1;
+      updates.push(updateDoc(doc(db, "cards", card.id), { boxName: targetName }));
+    });
+  }
+
+  if (updates.length) {
+    await Promise.allSettled(updates);
+    setStatus(`Moved ${moved} card${moved === 1 ? "" : "s"} to the next box to keep 30 per box.`);
+  }
 }
 
 // ---------- Auth listeners ----------
