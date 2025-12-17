@@ -22,6 +22,7 @@ import {
   ref,
   uploadBytes,
   getDownloadURL,
+  deleteObject,
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 import {
   getAuth,
@@ -60,6 +61,8 @@ const nextBoxBtn = document.getElementById("nextBoxBtn");
 const searchInput = document.getElementById("searchInput");
 const filterSetNumber = document.getElementById("filterSetNumber");
 const filterCondition = document.getElementById("filterCondition");
+const filterClass = document.getElementById("filterClass");
+const autoPackBtn = document.getElementById("autoPackBtn");
 
 const cardForm = document.getElementById("cardForm");
 const cardImage = document.getElementById("cardImage");
@@ -70,6 +73,7 @@ const selectedNameEl = document.getElementById("selectedName");
 const selectedSetEl = document.getElementById("selectedSet");
 const selectedSetNumberEl = document.getElementById("selectedSetNumber");
 const selectedConditionEl = document.getElementById("selectedCondition");
+const selectedClassEl = document.getElementById("selectedClass");
 const selectedQtyEl = document.getElementById("selectedQty");
 const selectedPriceEl = document.getElementById("selectedPrice");
 const editPriceInput = document.getElementById("editPriceInput");
@@ -80,6 +84,7 @@ const cardNameInput = document.getElementById("cardName");
 const cardSetInput = document.getElementById("cardSet");
 const cardSetNumberInput = document.getElementById("cardSetNumber");
 const cardConditionInput = document.getElementById("cardCondition");
+const cardClassSelect = document.getElementById("cardClass");
 const cardQuantityInput = document.getElementById("cardQuantity"); // hidden, always 1
 const cardPriceInput = document.getElementById("cardPrice");
 const cardImageFileInput = document.getElementById("cardImageFile");
@@ -91,6 +96,11 @@ const deleteBtn = document.getElementById("deleteCardBtn");
 
 // Status text
 const adminStatusEl = document.getElementById("adminStatus");
+const activeRequestBanner = document.getElementById("activeRequestBanner");
+const activeRequestText = document.getElementById("activeRequestText");
+const clearRequestHighlightBtn = document.getElementById("clearRequestHighlight");
+const activeRequestPrevBtn = document.getElementById("activeRequestPrev");
+const activeRequestNextBtn = document.getElementById("activeRequestNext");
 
 // Auth UI
 const adminAppShell = document.getElementById("adminApp");
@@ -148,12 +158,15 @@ const MAX_CLOUD_VALUE = 900000; // guard Firestore 1MB field limit
 const BOX_CAPACITY = 30;
 // Admin boxes grow dynamically; start with one box and expand as cards fill.
 let boxCount = 1;
+let requestTagMap = new Map();
 
 // ---------- State ----------
 let allCards = [];
 let currentBoxIndex = 0;
 let selectedCardId = null;
 let adminAppStarted = false;
+let activeRequestLabel = null;
+let activeRequestIndex = -1;
 
 // ---------- Helpers ----------
 function setStatus(message) {
@@ -237,6 +250,17 @@ function findNextBoxWithSpace(startIndex = 0, counts) {
   const newIndex = tally.length;
   setBoxCount(newIndex + 1);
   return newIndex;
+}
+
+function extractCardIdsFromRequest(req) {
+  if (!req) return [];
+  if (Array.isArray(req.cardIds) && req.cardIds.length) {
+    return req.cardIds.filter(Boolean);
+  }
+  if (Array.isArray(req.cart) && req.cart.length) {
+    return req.cart.map((c) => c.id).filter(Boolean);
+  }
+  return [];
 }
 
 // Initialize box options with at least one box
@@ -464,7 +488,7 @@ function renderTradeRequests(requests = []) {
     return;
   }
 
-  requests.forEach((req) => {
+  requests.forEach((req, idx) => {
     const card = document.createElement("div");
     card.className = "trade-request-card";
 
@@ -534,6 +558,12 @@ function renderTradeRequests(requests = []) {
       idRow.textContent = `ID: ${req.id}`;
       card.appendChild(idRow);
     }
+
+    card.addEventListener("click", (ev) => {
+      if (ev.target.closest("button")) return;
+      selectRequestByIndex(idx);
+    });
+
     tradeRequestsList.appendChild(card);
   });
 }
@@ -552,6 +582,8 @@ async function loadTradeRequests() {
     }
     const requests = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     renderTradeRequests(requests);
+    tradeRequestsCache = requests;
+    clearRequestHighlight(true);
     setStatus("Ready.");
   } catch (err) {
     console.warn("Failed to load trade requests", err);
@@ -569,18 +601,17 @@ async function updateTradeRequestStatus(id, status) {
     );
     renderTradeRequests(tradeRequestsCache);
     const target = tradeRequestsCache.find((r) => r.id === id);
-    const cardIds =
-      (target?.cardIds && target.cardIds.length
-        ? target.cardIds
-        : Array.isArray(target?.cart)
-          ? target.cart.map((c) => c.id).filter(Boolean)
-          : []) || [];
+    const cardIds = extractCardIdsFromRequest(target);
     if (cardIds.length) {
-      const updates =
-        status === "sold"
-          ? { held: false, sold: true }
-          : { held: true, sold: false };
-      await updateCardFlags(cardIds, updates);
+      if (status === "sold") {
+        await deleteCardsAndAssets(cardIds);
+      } else {
+        const updates =
+          status === "sold"
+            ? { held: false, sold: true }
+            : { held: true, sold: false };
+        await updateCardFlags(cardIds, updates);
+      }
     }
     await loadTradeRequests();
     setStatus(`Updated request ${id} to ${status}.`);
@@ -598,6 +629,39 @@ async function updateCardFlags(cardIds, updates) {
   await batch.commit();
 }
 
+async function deleteCardAndAssets(card) {
+  if (!card?.id) return;
+  const assetUrls = [card.cardImageUrl, card.imageUrl, card.spriteUrl].filter(Boolean);
+  await deleteDoc(doc(db, "cards", card.id));
+  await Promise.allSettled(
+    assetUrls.map((url) => {
+      try {
+        const assetRef = ref(storage, url);
+        return deleteObject(assetRef);
+      } catch {
+        return Promise.resolve();
+      }
+    })
+  );
+}
+
+async function deleteCardsAndAssets(cardIds) {
+  const targets = allCards.filter((c) => cardIds.includes(c.id));
+  if (!targets.length) return;
+  try {
+    setStatus("Removing sold cards...");
+    await Promise.allSettled(targets.map((card) => deleteCardAndAssets(card)));
+    allCards = allCards.filter((c) => !cardIds.includes(c.id));
+    cardIds.forEach((id) => requestTagMap.delete(id));
+    ensureBoxCount();
+    renderCards();
+    selectCard(null);
+  } catch (err) {
+    console.warn("Failed to delete sold cards", err);
+    setStatus("Failed to remove sold cards.");
+  }
+}
+
 async function deleteTradeRequest(id) {
   if (!id) return;
   const ok = confirm("Delete this request? This cannot be undone.");
@@ -605,12 +669,7 @@ async function deleteTradeRequest(id) {
   try {
     setStatus(`Deleting request ${id}...`);
     const target = tradeRequestsCache.find((r) => r.id === id);
-    const cardIds =
-      (target?.cardIds && target.cardIds.length
-        ? target.cardIds
-        : Array.isArray(target?.cart)
-          ? target.cart.map((c) => c.id).filter(Boolean)
-          : []) || [];
+    const cardIds = extractCardIdsFromRequest(target);
     // Release holds on delete if not sold
     if (cardIds.length && target?.status !== "sold") {
       await updateCardFlags(cardIds, { held: false });
@@ -622,6 +681,39 @@ async function deleteTradeRequest(id) {
   } catch (err) {
     console.warn("Failed to delete request", err);
     setStatus("Failed to delete request.");
+  }
+}
+
+async function autoPackBoxes() {
+  if (!allCards.length) return;
+  try {
+    setStatus("Auto-packing boxes...");
+    const sorted = [...allCards].sort(
+      (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+    );
+    const updates = [];
+    let moved = 0;
+    sorted.forEach((card, idx) => {
+      const targetBoxIdx = Math.floor(idx / BOX_CAPACITY);
+      const targetName = getBoxName(targetBoxIdx);
+      if (card.boxName !== targetName) {
+        card.boxName = targetName;
+        moved += 1;
+        updates.push(updateDoc(doc(db, "cards", card.id), { boxName: targetName }));
+      }
+    });
+    setBoxCount(Math.ceil(sorted.length / BOX_CAPACITY));
+    await Promise.allSettled(updates);
+    allCards = sorted;
+    renderCards();
+    setStatus(
+      moved
+        ? `Auto-packed boxes. Moved ${moved} card${moved === 1 ? "" : "s"}.`
+        : "Auto-pack complete. No moves needed."
+    );
+  } catch (err) {
+    console.error("Auto-pack failed", err);
+    setStatus("Auto-pack failed.");
   }
 }
 
@@ -641,6 +733,58 @@ function loadLocalPaymentIcons() {
     const saved = localStorage.getItem(`paymentIcon_${key}`);
     if (saved) applyPaymentIcon(key, saved, false);
   });
+}
+
+function applyRequestTagsToCards() {
+  if (!allCards || !allCards.length) return;
+  allCards = allCards.map((card) => ({
+    ...card,
+    requestTagLabel: requestTagMap.get(card.id) || null,
+  }));
+}
+
+function selectRequestByIndex(index) {
+  if (!tradeRequestsCache.length) return;
+  const total = tradeRequestsCache.length;
+  const normalized = ((index % total) + total) % total; // wrap around
+  const req = tradeRequestsCache[normalized];
+  const label = normalized + 1;
+  const ids = extractCardIdsFromRequest(req);
+  if (!ids.length) {
+    alert("No cards attached to this request.");
+    return;
+  }
+  requestTagMap = new Map();
+  ids.forEach((id) => requestTagMap.set(id, label));
+  applyRequestTagsToCards();
+  renderCards();
+  activeRequestIndex = normalized;
+  activeRequestLabel = label;
+  updateActiveRequestBanner(req, label, total);
+  setStatus(`Highlighted ${ids.length} card${ids.length === 1 ? "" : "s"} for request ${label}.`);
+}
+
+function clearRequestHighlight(silent = false) {
+  requestTagMap = new Map();
+  applyRequestTagsToCards();
+  renderCards();
+  activeRequestLabel = null;
+  activeRequestIndex = -1;
+  updateActiveRequestBanner();
+  if (!silent) setStatus("Cleared request highlight.");
+}
+
+function updateActiveRequestBanner(req = null, label = null, total = null) {
+  if (!activeRequestBanner || !activeRequestText) return;
+  const show = req && label != null;
+  activeRequestBanner.classList.toggle("hidden", !show);
+  if (show) {
+    const name = req.name || req.id || `Request ${label}`;
+    const count = extractCardIdsFromRequest(req).length;
+    const countText = `${count} item${count === 1 ? "" : "s"}`;
+    const totalText = total ? ` / ${total}` : "";
+    activeRequestText.textContent = `REQ ${label}${totalText}: ${name} • ${countText}`;
+  }
 }
 
 async function saveThemeSettings(partial) {
@@ -735,9 +879,17 @@ const renderCardsDebounced = debounce(renderCards, 120);
 async function loadAllCards() {
   setStatus("Loading cards...");
   const snap = await getDocs(collection(db, "cards"));
-  allCards = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  allCards = snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ...data,
+      cardClass: data.cardClass || "Pokemon",
+    };
+  });
   console.log("[admin] Loaded cards:", allCards);
   ensureBoxCount();
+  applyRequestTagsToCards();
   setStatus("Ready.");
 }
 
@@ -750,6 +902,7 @@ function matchesFilters(card) {
   const search = (searchInput?.value || "").toLowerCase().trim();
   const setFilter = filterSetNumber ? filterSetNumber.value : "Any";
   const conditionFilter = filterCondition ? filterCondition.value : "Any";
+  const classFilter = filterClass ? filterClass.value : "Any";
 
   const matchesSearch =
     !search ||
@@ -763,7 +916,12 @@ function matchesFilters(card) {
   const matchesCondition =
     conditionFilter === "Any" || card.condition === conditionFilter;
 
-  return matchesSearch && matchesSetNumber && matchesCondition;
+  const matchesClass =
+    classFilter === "Any" ||
+    (card.cardClass || "Pokemon").toLowerCase() ===
+      String(classFilter).toLowerCase();
+
+  return matchesSearch && matchesSetNumber && matchesCondition && matchesClass;
 }
 
 function clearCardsContainer() {
@@ -793,6 +951,14 @@ function renderCards() {
     const slot = document.createElement("button");
     slot.className = "admin-card-slot";
     slot.dataset.cardId = card.id;
+
+    if (card.requestTagLabel) {
+      slot.classList.add("has-request-tag");
+      const badge = document.createElement("span");
+      badge.className = "request-badge";
+      badge.textContent = `REQ ${card.requestTagLabel}`;
+      slot.appendChild(badge);
+    }
 
     const imageWrapper = document.createElement("div");
     imageWrapper.className = "admin-card-image-wrapper";
@@ -835,11 +1001,12 @@ function selectCard(cardId) {
     if (selectedSetEl) selectedSetEl.textContent = "Set: —";
     if (selectedSetNumberEl) selectedSetNumberEl.textContent = "Set Number: —";
     if (selectedConditionEl) selectedConditionEl.textContent = "Condition: —";
+    if (selectedClassEl) selectedClassEl.textContent = "Class: —";
     if (selectedQtyEl) selectedQtyEl.textContent = "Quantity: —";
     if (selectedPriceEl) selectedPriceEl.textContent = "Price: —";
 
-    if (cardImage) {
-      cardImage.src = "";
+  if (cardImage) {
+    cardImage.src = "";
       cardImage.classList.add("hidden");
     }
     if (portraitInitial) {
@@ -865,6 +1032,8 @@ function selectCard(cardId) {
     selectedConditionEl.textContent = `Condition: ${
       card.condition || "Unknown"
     }`;
+  if (selectedClassEl)
+    selectedClassEl.textContent = `Class: ${card.cardClass || "Pokemon"}`;
   if (selectedQtyEl)
     selectedQtyEl.textContent = `Quantity: ${card.quantity ?? 1}`;
   if (selectedPriceEl)
@@ -910,11 +1079,12 @@ async function handleAddCard(e) {
     setStatus("Adding card...");
 
     const name = cardNameInput.value.trim();
-    const set = cardSetInput.value.trim();
-    const setNumber = cardSetNumberInput.value.trim();
-    const condition = cardConditionInput.value;
-    const quantity = Number(cardQuantityInput.value || "1");
-    const price = Number(cardPriceInput.value || "0");
+  const set = cardSetInput.value.trim();
+  const setNumber = cardSetNumberInput.value.trim();
+  const condition = cardConditionInput.value;
+  const cardClass = cardClassSelect?.value || "Pokemon";
+  const quantity = Number(cardQuantityInput.value || "1");
+  const price = Number(cardPriceInput.value || "0");
 
     const counts = getBoxCounts();
     const targetBoxIndex = findNextBoxWithSpace(currentBoxIndex, counts);
@@ -946,6 +1116,7 @@ async function handleAddCard(e) {
       set,
       setNumber,
       condition,
+      cardClass,
       quantity,
       price,
       boxName,
@@ -1318,3 +1489,27 @@ if (filterSetNumber)
   filterSetNumber.addEventListener("change", renderCardsDebounced);
 if (filterCondition)
   filterCondition.addEventListener("change", renderCardsDebounced);
+if (filterClass) filterClass.addEventListener("change", renderCardsDebounced);
+if (autoPackBtn) {
+  autoPackBtn.addEventListener("click", autoPackBoxes);
+}
+
+if (clearRequestHighlightBtn) {
+  clearRequestHighlightBtn.addEventListener("click", () => clearRequestHighlight());
+}
+
+if (activeRequestPrevBtn) {
+  activeRequestPrevBtn.addEventListener("click", () => {
+    if (!tradeRequestsCache.length) return;
+    const targetIdx = activeRequestIndex >= 0 ? activeRequestIndex - 1 : 0;
+    selectRequestByIndex(targetIdx);
+  });
+}
+
+if (activeRequestNextBtn) {
+  activeRequestNextBtn.addEventListener("click", () => {
+    if (!tradeRequestsCache.length) return;
+    const targetIdx = activeRequestIndex >= 0 ? activeRequestIndex + 1 : 0;
+    selectRequestByIndex(targetIdx);
+  });
+}

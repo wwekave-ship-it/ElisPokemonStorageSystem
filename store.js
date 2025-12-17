@@ -4,7 +4,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import {
   initializeFirestore,
-  getFirestore,
   collection,
   getDocs,
   doc,
@@ -41,6 +40,7 @@ const boxStatus = document.getElementById("boxStatus");
 const prevBoxBtn = document.getElementById("prevBoxBtn");
 const nextBoxBtn = document.getElementById("nextBoxBtn");
 const searchInput = document.getElementById("searchInput");
+const classSortBtn = document.getElementById("classSortBtn");
 
 const previewImage = document.getElementById("previewImage");
 const previewPlaceholder = document.getElementById("previewPlaceholder");
@@ -120,6 +120,7 @@ let bootTypingInterval = null;
 let bootStepTimeout = null;
 const bootOptionButtons = [bootStoreBtn, bootAdminBtn, bootLogoffBtn].filter(Boolean);
 const themeDocRef = doc(db, "settings", "theme");
+const CLASS_ORDER = ["Pokemon", "Supporter", "Item", "Stadium", "Tool", "Energy"];
 
 function ensureOverlayRefs() {
   if (!overlayEl) overlayEl = document.querySelector(".page-gif-overlay");
@@ -151,9 +152,14 @@ let partySelectedIndex = -1;
 let partyNavEnabled = false;
 let partyCloseFocus = false;
 let partyCheckoutFocus = false;
+let classSortActive = false;
 
 // --- Helpers ---
 function getBoxName(index) {
+  if (classSortActive) {
+    const className = CLASS_ORDER[index] || "Class";
+    return `${className} BOX`;
+  }
   return index === 0 ? "BOX1" : `BOX${index + 1}`;
 }
 
@@ -162,7 +168,19 @@ function setBoxStatus(message) {
 }
 
 function updateBoxHeader() {
-  if (boxLabel) boxLabel.textContent = getBoxName(currentBoxIndex);
+  if (!boxLabel) return;
+  if (classSortActive) {
+    const pages = getClassPages(getAvailableCards());
+    if (!pages.length) {
+      boxLabel.textContent = "CLASS VIEW";
+      return;
+    }
+    const clamped = Math.max(0, Math.min(currentBoxIndex, pages.length - 1));
+    const meta = pages[clamped];
+    boxLabel.textContent = `${meta.className} BOX (${meta.page + 1}/${meta.totalPagesForClass})`;
+    return;
+  }
+  boxLabel.textContent = getBoxName(currentBoxIndex);
 }
 
 // Sprite helpers (prefer provided URLs, then local sprite sheet, then fallback)
@@ -183,6 +201,12 @@ function pickSprite(card) {
     card?.imageUrl ||
     normalizeNameToSprite(card?.name)
   );
+}
+
+function normalizeCardClass(val) {
+  const raw = String(val || "").trim().toLowerCase();
+  const found = CLASS_ORDER.find((c) => c.toLowerCase() === raw);
+  return found || "Pokemon";
 }
 
 function attachImgFallback(imgEl) {
@@ -296,7 +320,9 @@ async function loadCards() {
 
   const cached = loadPrefetchedCards();
   if (cached && !allCards.length) {
-    allCards = rebalance(cached);
+    allCards = rebalance(
+      cached.map((c) => ({ ...c, cardClass: normalizeCardClass(c.cardClass) }))
+    );
     cardsById = {};
     allCards.forEach((c) => {
       cardsById[c.id] = c;
@@ -315,7 +341,7 @@ async function loadCards() {
     const snap = await getDocs(collection(db, "cards"));
     allCards = snap.docs.map((docSnap) => {
       const data = docSnap.data();
-      const card = { id: docSnap.id, ...data };
+      const card = { id: docSnap.id, ...data, cardClass: normalizeCardClass(data.cardClass) };
 
       // Normalize boxIndex from boxName if needed
       let idx = 0;
@@ -362,13 +388,52 @@ async function loadCards() {
 }
 
 // --- Filtering & rendering ---
-function getCardsForCurrentBox() {
+function getAvailableCards() {
   return allCards.filter((c) => {
-    const inBox = (c.boxIndex || 0) === currentBoxIndex;
     const notInParty = !party.includes(c.id);
     const available = !c.held && !c.sold && (c.quantity == null || Number(c.quantity) > 0);
-    return inBox && notInParty && available;
+    return notInParty && available;
   });
+}
+
+function getClassPages(filtered) {
+  const pages = [];
+  CLASS_ORDER.forEach((className) => {
+    const list = filtered.filter(
+      (c) => normalizeCardClass(c.cardClass) === className
+    );
+    const pageCount = Math.ceil(list.length / BOX_CAPACITY);
+    if (pageCount === 0) return;
+    for (let page = 0; page < pageCount; page++) {
+      pages.push({
+        className,
+        page,
+        totalPagesForClass: pageCount,
+        start: page * BOX_CAPACITY,
+        end: (page + 1) * BOX_CAPACITY,
+        list,
+      });
+    }
+  });
+  return pages;
+}
+
+function getCardsForCurrentBox() {
+  const filtered = getAvailableCards();
+
+  if (!classSortActive) {
+    return filtered.filter((c) => (c.boxIndex || 0) === currentBoxIndex);
+  }
+
+  const pages = getClassPages(filtered);
+  if (!pages.length) {
+    currentBoxIndex = 0;
+    return [];
+  }
+  const clamped = Math.max(0, Math.min(currentBoxIndex, pages.length - 1));
+  if (clamped !== currentBoxIndex) currentBoxIndex = clamped;
+  const meta = pages[clamped];
+  return meta.list.slice(meta.start, meta.end);
 }
 
 function matchesSearch(card) {
@@ -569,6 +634,8 @@ function renderCurrentBox() {
   boxGrid.tabIndex = -1;
 
   const cards = getCardsForCurrentBox().filter(matchesSearch);
+  boxGrid.classList.toggle("class-sort-mode", classSortActive);
+  boxGrid.classList.toggle("class-sort-mode", classSortActive);
 
   if (!cards.length) {
     const emptyMsg = document.createElement("div");
@@ -1398,14 +1465,20 @@ function wirePartySlots() {
 
 // --- Box navigation ---
 function gotoPrevBox() {
-  if (currentBoxIndex === 0) return;
+  const limit = classSortActive
+    ? Math.max(0, getClassPages(getAvailableCards()).length - 1)
+    : maxBoxIndex;
+  if (currentBoxIndex <= 0) return;
   currentBoxIndex -= 1;
   renderCurrentBox();
   clearPreview();
 }
 
 function gotoNextBox() {
-  if (currentBoxIndex >= maxBoxIndex) return;
+  const limit = classSortActive
+    ? Math.max(0, getClassPages(getAvailableCards()).length - 1)
+    : maxBoxIndex;
+  if (currentBoxIndex >= limit) return;
   currentBoxIndex += 1;
   renderCurrentBox();
   clearPreview();
@@ -1431,6 +1504,14 @@ async function init() {
 
   if (prevBoxBtn) prevBoxBtn.addEventListener("click", gotoPrevBox);
   if (nextBoxBtn) nextBoxBtn.addEventListener("click", gotoNextBox);
+  if (classSortBtn) {
+    classSortBtn.addEventListener("click", () => {
+      classSortActive = !classSortActive;
+      currentBoxIndex = 0;
+      renderCurrentBox();
+      clearPreview();
+    });
+  }
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {

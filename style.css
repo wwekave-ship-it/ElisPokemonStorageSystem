@@ -1109,6 +1109,12 @@ button:active {
   overflow: hidden;
 }
 
+.admin-card-slot.has-request-tag {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08), 0 12px 26px rgba(0, 0, 0, 0.55);
+}
+
+.admin-card-slot.has-request-tag { border-color: rgba(67, 204, 255, 0.55); }
+
 .admin-card-slot:hover {
   border-color: rgba(15, 211, 255, 0.4);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
@@ -1117,6 +1123,21 @@ button:active {
 
 .admin-card-slot::before {
   content: none;
+}
+
+.request-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #05060a;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
 }
 
 /* thumbnail wrapper in grid */
@@ -1971,6 +1992,37 @@ button:active {
 
 .day-checkbox-group input[type="checkbox"] {
   accent-color: #ff4fa3;
+}
+
+.active-request-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  background: linear-gradient(135deg, rgba(67, 204, 255, 0.16), rgba(15, 211, 255, 0.08));
+  border: 1px solid rgba(67, 204, 255, 0.35);
+  border-radius: 12px;
+  margin: 0.5rem 0;
+  color: #dff6ff;
+  backdrop-filter: blur(6px);
+}
+
+.active-request-banner .chip-btn {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.active-request-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.active-request-text {
+  flex: 1;
 }
 
 .trade-requests-list {
