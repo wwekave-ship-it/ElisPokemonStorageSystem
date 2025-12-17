@@ -20,7 +20,6 @@ import {
 import {
   getStorage,
   ref,
-  refFromURL,
   uploadBytes,
   getDownloadURL,
   deleteObject,
@@ -637,7 +636,8 @@ async function deleteCardAndAssets(card) {
   await Promise.allSettled(
     assetUrls.map((url) => {
       try {
-        const assetRef = refFromURL ? refFromURL(url) : ref(storage, url);
+        // ref does not accept full URLs; ignore errors if invalid
+        const assetRef = ref(storage, url);
         return deleteObject(assetRef);
       } catch {
         return Promise.resolve();
